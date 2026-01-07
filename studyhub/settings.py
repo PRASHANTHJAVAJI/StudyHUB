@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     # third-party
     'rest_framework',
     'django_filters',
+    'django_cas_ng',
     # local
     'core',
 ]
@@ -125,10 +126,22 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # Authentication settings
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
+    'django_cas_ng.backends.CASBackend',
 ]
 
+LOGIN_URL = "/accounts/login"
 LOGIN_REDIRECT_URL = '/feed/'
 LOGOUT_REDIRECT_URL = '/'
+
+# CAS (Central Authentication Service) settings for Rice SSO
+CAS_SERVER_URL = 'https://idp.rice.edu/idp/profile/cas/'
+CAS_VERSION = '3'
+CAS_REDIRECT_URL = '/feed/'
+CAS_LOGOUT_COMPLETELY = True
+CAS_CREATE_USER = True  # Automatically create users from CAS
+CAS_USERNAME_ATTRIBUTE = 'uid'  # Attribute to use as username
+CAS_EMAIL_ATTRIBUTE = 'mail'  # Attribute to use as email
+CAS_FORCE_CHANGE_USERNAME_CASE = 'lower'  # Convert username to lowercase
 
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [

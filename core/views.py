@@ -15,9 +15,10 @@ import json
 import datetime
 from django.http import HttpResponse
 
-from .models import StudySession, SubjectTag, SessionMember, Message, UserProfile, WaitlistEntry
+from .models import StudySession, SubjectTag, SessionMember, Message, UserProfile, WaitlistEntry, Attendance
 from .serializers import StudySessionSerializer, SubjectTagSerializer, MessageSerializer
 from .forms import StudySessionForm, CustomUserCreationForm
+from django_cas_ng.views import LoginView as CASLoginView
 
 
 def custom_login(request):
@@ -43,6 +44,42 @@ def custom_login(request):
         form = AuthenticationForm()
     
     return render(request, 'registration/login.html', {'form': form})
+
+
+class CASLoginViewCustom(CASLoginView):
+    """
+    Custom CAS login view that ensures UserProfile is created.
+    """
+    def successful_login(self, request, next_page):
+        """
+        Called after successful CAS authentication.
+        Ensures UserProfile exists for the authenticated user.
+        """
+        user = request.user
+        if user and user.is_authenticated:
+            # Ensure UserProfile exists (signal should handle this, but double-check)
+            UserProfile.objects.get_or_create(
+                user=user,
+                defaults={'education_level': UserProfile.BACHELORS}
+            )
+            messages.success(request, f'Welcome, {user.username}!')
+        # Default redirect to feed if no next_page specified
+        if not next_page:
+            next_page = '/feed/'
+        return super().successful_login(request, next_page)
+
+
+def cas_signup(request):
+    """
+    CAS signup view - redirects to CAS login which will create the user.
+    This is essentially the same as CAS login but with a different entry point.
+    """
+    # Redirect to CAS login - CAS will create the user if they don't exist
+    # (because CAS_CREATE_USER = True in settings)
+    next_url = request.GET.get('next', '/feed/')
+    from urllib.parse import urlencode
+    params = urlencode({'next': next_url})
+    return redirect(f'/accounts/cas/login/?{params}')
 
 
 def signup(request):
@@ -223,6 +260,26 @@ def home(request):
     elif session_type == 'in-person':
         qs = qs.filter(is_virtual=False)
 
+    # Creator type filter (general users vs leaders/admins)
+    creator_type = request.GET.get('creator_type', '').strip()
+    if creator_type == 'general':
+        # Filter to show only sessions created by general users (not admin, not leader)
+        # Exclude: staff, superusers, and users with is_student_leader=True
+        # Users without profiles are considered general (they don't have is_student_leader=True)
+        # Use select_related to ensure owner and profile are loaded efficiently
+        qs = qs.select_related('owner', 'owner__profile').exclude(
+            Q(owner__is_staff=True) | 
+            Q(owner__is_superuser=True) | 
+            Q(owner__profile__is_student_leader=True)
+        ).distinct()
+    elif creator_type == 'leaders-admins':
+        # Filter to show only sessions created by admins or student leaders
+        qs = qs.select_related('owner', 'owner__profile').filter(
+            Q(owner__is_staff=True) | 
+            Q(owner__is_superuser=True) | 
+            Q(owner__profile__is_student_leader=True)
+        ).distinct()
+
     # Compute next occurrence for recurring sessions and filter out past ones
     def compute_next_occurrence(session, now_dt):
         """Return (next_start, next_end) or (None, None) if no future occurrence."""
@@ -295,8 +352,9 @@ def home(request):
     user_education_level = request.user.profile.education_level
     subjects = SubjectTag.objects.filter(education_level=user_education_level).order_by('name')
 
-    # Stats
-    upcoming_sessions_count = sum(1 for s in processed if getattr(s, 'display_start_time', s.start_time).date() == user_now.date())
+    # Stats - count sessions happening today (based on user's local time)
+    user_now_date = user_now.date()
+    upcoming_sessions_count = sum(1 for s in processed if getattr(s, 'display_start_time', s.start_time).date() == user_now_date)
 
     context = {
         'sessions': processed,
@@ -306,6 +364,7 @@ def home(request):
         'q': q or '',
         'date_range': date_range or '',
         'session_type': session_type or '',
+        'creator_type': creator_type,
     }
     return render(request, 'core/feed.html', context)
 
@@ -436,13 +495,25 @@ def group_details(request, pk):
     """
     session = get_object_or_404(
         StudySession.objects.select_related('owner')
-        .prefetch_related('subjects', 'memberships__user', 'messages__user')
+        .prefetch_related('subjects', 'memberships__user', 'messages__user', 'attendance__user')
         .annotate(num_members=Count('memberships')),
         pk=pk
     )
     is_member = False
     if request.user.is_authenticated:
         is_member = SessionMember.objects.filter(session=session, user=request.user).exists()
+
+    # Check if user can mark attendance (leader/admin and session has started)
+    can_mark_attendance = False
+    if request.user.is_authenticated:
+        from django.utils import timezone
+        is_leader_or_admin = (
+            request.user.is_staff or 
+            request.user.is_superuser or 
+            (hasattr(request.user, 'profile') and request.user.profile.is_student_leader)
+        )
+        session_started = timezone.now() >= session.start_time
+        can_mark_attendance = is_leader_or_admin and session_started and request.user == session.owner
 
     # Handle message posting
     if request.method == 'POST' and request.user.is_authenticated and is_member:
@@ -456,6 +527,12 @@ def group_details(request, pk):
             messages.success(request, 'Message sent!')
             return redirect('core:detail', pk=pk)
 
+    # Get attendance data
+    attendance_dict = {}
+    if can_mark_attendance or request.user.is_authenticated:
+        attendance_records = session.attendance.select_related('user').all()
+        attendance_dict = {record.user_id: record.status for record in attendance_records}
+
     context = {
         'session': session,
         'members': [m.user for m in session.memberships.all()],
@@ -463,6 +540,8 @@ def group_details(request, pk):
         'is_member': is_member,
         'spots_left': max(session.capacity - session.num_members, 0),
         'waitlist': session.waitlist.all() if request.user == session.owner else [],
+        'can_mark_attendance': can_mark_attendance,
+        'attendance_dict': attendance_dict,
     }
     return render(request, 'core/detail.html', context)
 
@@ -618,6 +697,67 @@ def session_ics(request, pk):
     response = HttpResponse(ics, content_type='text/calendar')
     response['Content-Disposition'] = f'attachment; filename="session_{session.pk}.ics"'
     return response
+
+
+@login_required
+@never_cache
+def mark_attendance(request, pk):
+    """
+    Mark attendance for a session member.
+    Only leaders/admins can mark attendance, and only after session has started.
+    """
+    session = get_object_or_404(StudySession, pk=pk)
+    
+    # Check permissions
+    is_leader_or_admin = (
+        request.user.is_staff or 
+        request.user.is_superuser or 
+        (hasattr(request.user, 'profile') and request.user.profile.is_student_leader)
+    )
+    
+    if not is_leader_or_admin or request.user != session.owner:
+        messages.error(request, 'You do not have permission to mark attendance.')
+        return redirect('core:detail', pk=pk)
+    
+    # Check if session has started
+    from django.utils import timezone
+    if timezone.now() < session.start_time:
+        messages.error(request, 'Attendance can only be marked after the session has started.')
+        return redirect('core:detail', pk=pk)
+    
+    if request.method == 'POST':
+        user_id = request.POST.get('user_id')
+        status = request.POST.get('status')  # 'present' or 'absent'
+        
+        if user_id and status in [Attendance.PRESENT, Attendance.ABSENT]:
+            try:
+                from django.contrib.auth.models import User
+                member_user = User.objects.get(id=user_id)
+                
+                # Verify user is a member of the session
+                if not SessionMember.objects.filter(session=session, user=member_user).exists():
+                    messages.error(request, 'User is not a member of this session.')
+                    return redirect('core:detail', pk=pk)
+                
+                # Create or update attendance
+                attendance, created = Attendance.objects.update_or_create(
+                    session=session,
+                    user=member_user,
+                    defaults={
+                        'status': status,
+                        'marked_by': request.user,
+                        'marked_at': timezone.now()
+                    }
+                )
+                
+                status_display = 'Present' if status == Attendance.PRESENT else 'Absent'
+                messages.success(request, f'Marked {member_user.username} as {status_display}.')
+            except User.DoesNotExist:
+                messages.error(request, 'User not found.')
+        else:
+            messages.error(request, 'Invalid attendance data.')
+    
+    return redirect('core:detail', pk=pk)
 
 
 # ---------------------------

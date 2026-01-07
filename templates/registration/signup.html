@@ -54,6 +54,42 @@
                         </div>
                     </div>
 
+                    <!-- First Name Field -->
+                    <div class="mb-4">
+                        <label for="{{ form.first_name.id_for_label }}" class="form-label fw-semibold">
+                            <i class="fas fa-user me-2 text-primary"></i>First Name
+                        </label>
+                        {{ form.first_name }}
+                        {% if form.first_name.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.first_name.errors %}
+                                    <i class="fas fa-exclamation-circle me-1"></i>{{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">
+                            <i class="fas fa-info-circle me-1"></i>Enter your first name
+                        </div>
+                    </div>
+
+                    <!-- Last Name Field -->
+                    <div class="mb-4">
+                        <label for="{{ form.last_name.id_for_label }}" class="form-label fw-semibold">
+                            <i class="fas fa-user me-2 text-primary"></i>Last Name
+                        </label>
+                        {{ form.last_name }}
+                        {% if form.last_name.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.last_name.errors %}
+                                    <i class="fas fa-exclamation-circle me-1"></i>{{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">
+                            <i class="fas fa-info-circle me-1"></i>Enter your last name
+                        </div>
+                    </div>
+
                     <!-- Education Level Field -->
                     <div class="mb-4">
                         <label for="{{ form.education_level.id_for_label }}" class="form-label fw-semibold">
@@ -141,6 +177,14 @@
                         </button>
                     </div>
                 </form>
+                
+                <!-- RICE SSO Signup Option -->
+                <hr class="my-4">
+                <div class="d-grid">
+                    <a href="{% url 'cas_signup' %}" class="btn btn-outline-primary btn-lg">
+                        <i class="fas fa-university me-2"></i>Signup using RICE email ID
+                    </a>
+                </div>
 
                 <!-- Login Link -->
                 <div class="text-center mt-4">

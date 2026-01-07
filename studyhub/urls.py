@@ -18,6 +18,7 @@ from django.contrib import admin
 from django.urls import path, include
 from django.contrib.auth import views as auth_views
 from django.shortcuts import redirect
+from core.views import CASLoginViewCustom, cas_signup
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -25,5 +26,8 @@ urlpatterns = [
     path('', include('core.urls', namespace='core')),
     # Authentication URLs - redirect to custom login
     path('accounts/login/', lambda request: redirect('core:login'), name='login'),
+    # CAS authentication URLs
+    path('accounts/cas/login/', CASLoginViewCustom.as_view(), name='cas_login'),
+    path('accounts/cas/signup/', cas_signup, name='cas_signup'),
 ]
 
