@@ -21,3 +21,10 @@ def is_leader(user):
         return bool(profile and getattr(profile, 'is_student_leader', False))
     except Exception:
         return False
+
+@register.filter
+def get_item(dictionary, key):
+    """Get an item from a dictionary by key."""
+    if dictionary is None:
+        return None
+    return dictionary.get(key)

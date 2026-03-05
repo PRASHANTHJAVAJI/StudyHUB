@@ -16,18 +16,15 @@ Including another URLconf
 
 from django.contrib import admin
 from django.urls import path, include
-from django.contrib.auth import views as auth_views
-from django.shortcuts import redirect
-from core.views import CASLoginViewCustom, cas_signup
+from importlib.util import find_spec
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/auth/', include('rest_framework.urls')),
     path('', include('core.urls', namespace='core')),
-    # Authentication URLs - redirect to custom login
-    path('accounts/login/', lambda request: redirect('core:login'), name='login'),
-    # CAS authentication URLs
-    path('accounts/cas/login/', CASLoginViewCustom.as_view(), name='cas_login'),
-    path('accounts/cas/signup/', cas_signup, name='cas_signup'),
 ]
 
+# Add REST framework URLs if available
+if find_spec("rest_framework") is not None:
+    urlpatterns += [
+        path('api/auth/', include('rest_framework.urls')),
+    ]

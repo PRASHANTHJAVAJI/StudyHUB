@@ -1,6 +1,18 @@
-from rest_framework import viewsets, permissions, decorators, response, status
-from django_filters.rest_framework import DjangoFilterBackend
-from django.db.models import Count, Prefetch, Q
+# REST Framework imports - conditional in case rest_framework is not installed
+try:
+    from rest_framework import viewsets, permissions, decorators, response, status
+    from django_filters.rest_framework import DjangoFilterBackend
+    REST_FRAMEWORK_AVAILABLE = True
+except ImportError:
+    viewsets = None
+    permissions = None
+    decorators = None
+    response = None
+    status = None
+    DjangoFilterBackend = None
+    REST_FRAMEWORK_AVAILABLE = False
+
+from django.db.models import Count, Q
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
@@ -15,10 +27,17 @@ import json
 import datetime
 from django.http import HttpResponse
 
-from .models import StudySession, SubjectTag, SessionMember, Message, UserProfile, WaitlistEntry, Attendance
-from .serializers import StudySessionSerializer, SubjectTagSerializer, MessageSerializer
+from .models import StudySession, SubjectTag, SessionMember, Message, WaitlistEntry, Attendance
 from .forms import StudySessionForm, CustomUserCreationForm
-from django_cas_ng.views import LoginView as CASLoginView
+
+# Serializers import - conditional in case rest_framework is not installed
+if REST_FRAMEWORK_AVAILABLE:
+    from .serializers import StudySessionSerializer, SubjectTagSerializer, MessageSerializer
+else:
+    StudySessionSerializer = None
+    SubjectTagSerializer = None
+    MessageSerializer = None
+
 
 
 def custom_login(request):
@@ -34,7 +53,7 @@ def custom_login(request):
             if user is not None:
                 login(request, user)
                 messages.success(request, f'Welcome back, {user.username}!')
-                next_url = request.GET.get('next', 'core:home')
+                next_url = request.GET.get('next', '/feed/')
                 return redirect(next_url)
             else:
                 messages.error(request, 'Invalid username or password.')
@@ -44,42 +63,6 @@ def custom_login(request):
         form = AuthenticationForm()
     
     return render(request, 'registration/login.html', {'form': form})
-
-
-class CASLoginViewCustom(CASLoginView):
-    """
-    Custom CAS login view that ensures UserProfile is created.
-    """
-    def successful_login(self, request, next_page):
-        """
-        Called after successful CAS authentication.
-        Ensures UserProfile exists for the authenticated user.
-        """
-        user = request.user
-        if user and user.is_authenticated:
-            # Ensure UserProfile exists (signal should handle this, but double-check)
-            UserProfile.objects.get_or_create(
-                user=user,
-                defaults={'education_level': UserProfile.BACHELORS}
-            )
-            messages.success(request, f'Welcome, {user.username}!')
-        # Default redirect to feed if no next_page specified
-        if not next_page:
-            next_page = '/feed/'
-        return super().successful_login(request, next_page)
-
-
-def cas_signup(request):
-    """
-    CAS signup view - redirects to CAS login which will create the user.
-    This is essentially the same as CAS login but with a different entry point.
-    """
-    # Redirect to CAS login - CAS will create the user if they don't exist
-    # (because CAS_CREATE_USER = True in settings)
-    next_url = request.GET.get('next', '/feed/')
-    from urllib.parse import urlencode
-    params = urlencode({'next': next_url})
-    return redirect(f'/accounts/cas/login/?{params}')
 
 
 def signup(request):
@@ -112,8 +95,6 @@ def profile(request):
     """
     User profile page showing user information, stats, and recent activity.
     """
-    from django.utils import timezone
-    from datetime import timedelta
     user_sessions = StudySession.objects.filter(owner=request.user).order_by('-created_at')
     joined_sessions = StudySession.objects.filter(memberships__user=request.user).exclude(owner=request.user).order_by('-created_at')
 
@@ -243,7 +224,6 @@ def home(request):
     # Date range and local time handling
     date_range = request.GET.get('date')
     local_datetime_str = request.GET.get('local_datetime')
-    from django.utils import timezone
     from datetime import datetime
     if local_datetime_str:
         try:
@@ -475,11 +455,8 @@ def create_group(request):
     
     # Pass the subjects data to the template for JavaScript
     subjects_data = getattr(form, 'all_subjects', {})
-    print(f"View: Passing subjects data to template: {subjects_data}")  # Debug
-    
     # Convert to JSON for JavaScript
     subjects_data_json = json.dumps(subjects_data)
-    print(f"View: JSON serialized data: {subjects_data_json}")  # Debug
     
     context = {
         'form': form,
@@ -506,7 +483,6 @@ def group_details(request, pk):
     # Check if user can mark attendance (leader/admin and session has started)
     can_mark_attendance = False
     if request.user.is_authenticated:
-        from django.utils import timezone
         is_leader_or_admin = (
             request.user.is_staff or 
             request.user.is_superuser or 
@@ -720,7 +696,6 @@ def mark_attendance(request, pk):
         return redirect('core:detail', pk=pk)
     
     # Check if session has started
-    from django.utils import timezone
     if timezone.now() < session.start_time:
         messages.error(request, 'Attendance can only be marked after the session has started.')
         return redirect('core:detail', pk=pk)
@@ -764,64 +739,71 @@ def mark_attendance(request, pk):
 # Your existing DRF ViewSets:
 # ---------------------------
 
-class IsOwnerOrReadOnly(permissions.BasePermission):
-    def has_object_permission(self, request, view, obj):
-        if request.method in permissions.SAFE_METHODS:
-            return True
-        return getattr(obj, 'owner_id', None) == getattr(request.user, 'id', None)
+# Only define ViewSets if REST framework is available
+if REST_FRAMEWORK_AVAILABLE:
+    class IsOwnerOrReadOnly(permissions.BasePermission):
+        def has_object_permission(self, request, view, obj):
+            if request.method in permissions.SAFE_METHODS:
+                return True
+            return getattr(obj, 'owner_id', None) == getattr(request.user, 'id', None)
 
-class StudySessionViewSet(viewsets.ModelViewSet):
-    queryset = (
-        StudySession.objects.select_related('owner')
-        .prefetch_related('subjects', 'memberships', 'messages')
-        .annotate(num_members=Count('memberships'))
-    )
-    serializer_class = StudySessionSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
-    filter_backends = [DjangoFilterBackend]
-    filterset_fields = {'is_virtual': ['exact'], 'subjects__slug': ['exact']}
-
-    def perform_create(self, serializer):
-        session = serializer.save(owner=self.request.user)
-        SessionMember.objects.get_or_create(
-            session=session, user=self.request.user, defaults={'role': SessionMember.HOST}
+    class StudySessionViewSet(viewsets.ModelViewSet):
+        queryset = (
+            StudySession.objects.select_related('owner')
+            .prefetch_related('subjects', 'memberships', 'messages')
+            .annotate(num_members=Count('memberships'))
         )
+        serializer_class = StudySessionSerializer
+        permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
+        filter_backends = [DjangoFilterBackend]
+        filterset_fields = {'is_virtual': ['exact'], 'subjects__slug': ['exact']}
 
-    @decorators.action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
-    def join(self, request, pk=None):
-        session = self.get_object()
-        if SessionMember.objects.filter(session=session, user=request.user).exists():
-            return response.Response({'detail': 'Already joined.'}, status=status.HTTP_200_OK)
-        if session.memberships.count() >= session.capacity:
-            return response.Response({'detail': 'Session is full.'}, status=status.HTTP_400_BAD_REQUEST)
-        SessionMember.objects.create(session=session, user=request.user)
-        return response.Response({'detail': 'Joined.'}, status=status.HTTP_201_CREATED)
+        def perform_create(self, serializer):
+            session = serializer.save(owner=self.request.user)
+            SessionMember.objects.get_or_create(
+                session=session, user=self.request.user, defaults={'role': SessionMember.HOST}
+            )
 
-    @decorators.action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
-    def leave(self, request, pk=None):
-        session = self.get_object()
-        deleted, _ = SessionMember.objects.filter(session=session, user=request.user).delete()
-        if deleted == 0:
-            return response.Response({'detail': 'You were not a member.'}, status=status.HTTP_200_OK)
-        return response.Response({'detail': 'Left.'}, status=status.HTTP_200_OK)
+        @decorators.action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
+        def join(self, request, pk=None):
+            session = self.get_object()
+            if SessionMember.objects.filter(session=session, user=request.user).exists():
+                return response.Response({'detail': 'Already joined.'}, status=status.HTTP_200_OK)
+            if session.memberships.count() >= session.capacity:
+                return response.Response({'detail': 'Session is full.'}, status=status.HTTP_400_BAD_REQUEST)
+            SessionMember.objects.create(session=session, user=request.user)
+            return response.Response({'detail': 'Joined.'}, status=status.HTTP_201_CREATED)
 
-    @decorators.action(detail=True, methods=['get', 'post'], permission_classes=[permissions.IsAuthenticatedOrReadOnly])
-    def messages(self, request, pk=None):
-        session = self.get_object()
-        if request.method == 'POST':
-            if not SessionMember.objects.filter(session=session, user=request.user).exists():
-                return response.Response({'detail': 'Join first to post.'}, status=status.HTTP_403_FORBIDDEN)
-            ser = MessageSerializer(data=request.data)
-            ser.is_valid(raise_exception=True)
-            msg = Message.objects.create(session=session, user=request.user, text=ser.validated_data['text'])
-            return response.Response(MessageSerializer(msg).data, status=status.HTTP_201_CREATED)
-        qs = session.messages.select_related('user')
-        page = self.paginate_queryset(qs)
-        if page is not None:
-            return self.get_paginated_response(MessageSerializer(page, many=True).data)
-        return response.Response(MessageSerializer(qs, many=True).data)
+        @decorators.action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
+        def leave(self, request, pk=None):
+            session = self.get_object()
+            deleted, _ = SessionMember.objects.filter(session=session, user=request.user).delete()
+            if deleted == 0:
+                return response.Response({'detail': 'You were not a member.'}, status=status.HTTP_200_OK)
+            return response.Response({'detail': 'Left.'}, status=status.HTTP_200_OK)
 
-class SubjectTagViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = SubjectTag.objects.all().order_by('name')
-    serializer_class = SubjectTagSerializer
-    permission_classes = [permissions.AllowAny]
+        @decorators.action(detail=True, methods=['get', 'post'], permission_classes=[permissions.IsAuthenticatedOrReadOnly])
+        def messages(self, request, pk=None):
+            session = self.get_object()
+            if request.method == 'POST':
+                if not SessionMember.objects.filter(session=session, user=request.user).exists():
+                    return response.Response({'detail': 'Join first to post.'}, status=status.HTTP_403_FORBIDDEN)
+                ser = MessageSerializer(data=request.data)
+                ser.is_valid(raise_exception=True)
+                msg = Message.objects.create(session=session, user=request.user, text=ser.validated_data['text'])
+                return response.Response(MessageSerializer(msg).data, status=status.HTTP_201_CREATED)
+            qs = session.messages.select_related('user')
+            page = self.paginate_queryset(qs)
+            if page is not None:
+                return self.get_paginated_response(MessageSerializer(page, many=True).data)
+            return response.Response(MessageSerializer(qs, many=True).data)
+
+    class SubjectTagViewSet(viewsets.ReadOnlyModelViewSet):
+        queryset = SubjectTag.objects.all().order_by('name')
+        serializer_class = SubjectTagSerializer
+        permission_classes = [permissions.AllowAny]
+else:
+    # Placeholder classes if REST framework is not available
+    IsOwnerOrReadOnly = None
+    StudySessionViewSet = None
+    SubjectTagViewSet = None

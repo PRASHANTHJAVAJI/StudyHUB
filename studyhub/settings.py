@@ -11,8 +11,12 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 """
 
 from pathlib import Path
+from importlib.util import find_spec
 import os
-import dj_database_url
+try:
+    import dj_database_url
+except ImportError:
+    dj_database_url = None
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -40,12 +44,16 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     # third-party
-    'rest_framework',
-    'django_filters',
-    'django_cas_ng',
     # local
     'core',
 ]
+
+# Add optional third-party apps if available
+if find_spec("rest_framework") is not None:
+    INSTALLED_APPS.insert(-1, 'rest_framework')
+
+if find_spec("django_filters") is not None:
+    INSTALLED_APPS.insert(-1, 'django_filters')
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -84,13 +92,21 @@ WSGI_APPLICATION = "studyhub.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
-DATABASES = {
-    "default": dj_database_url.config(
-        default="sqlite:///" + str(BASE_DIR / "db.sqlite3"),
-        conn_max_age=600,
-        conn_health_checks=True,
-    )
-}
+if dj_database_url:
+    DATABASES = {
+        "default": dj_database_url.config(
+            default="sqlite:///" + str(BASE_DIR / "db.sqlite3"),
+            conn_max_age=600,
+            conn_health_checks=True,
+        )
+    }
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+        }
+    }
 
 
 # Password validation
@@ -126,39 +142,30 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # Authentication settings
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
-    'django_cas_ng.backends.CASBackend',
 ]
 
-LOGIN_URL = "/accounts/login"
+LOGIN_URL = "/login/"
 LOGIN_REDIRECT_URL = '/feed/'
 LOGOUT_REDIRECT_URL = '/'
 
-# CAS (Central Authentication Service) settings for Rice SSO
-CAS_SERVER_URL = 'https://idp.rice.edu/idp/profile/cas/'
-CAS_VERSION = '3'
-CAS_REDIRECT_URL = '/feed/'
-CAS_LOGOUT_COMPLETELY = True
-CAS_CREATE_USER = True  # Automatically create users from CAS
-CAS_USERNAME_ATTRIBUTE = 'uid'  # Attribute to use as username
-CAS_EMAIL_ATTRIBUTE = 'mail'  # Attribute to use as email
-CAS_FORCE_CHANGE_USERNAME_CASE = 'lower'  # Convert username to lowercase
-
-REST_FRAMEWORK = {
-    'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAuthenticatedOrReadOnly',
-    ],
-    'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.SessionAuthentication',
-        'rest_framework.authentication.BasicAuthentication',
-    ],
-    'DEFAULT_FILTER_BACKENDS': [
-        'django_filters.rest_framework.DjangoFilterBackend',
-        'rest_framework.filters.SearchFilter',
-        'rest_framework.filters.OrderingFilter',
-    ],
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 20,
-}
+# REST Framework settings (only if rest_framework is installed)
+if find_spec("rest_framework") is not None and find_spec("django_filters") is not None:
+    REST_FRAMEWORK = {
+        'DEFAULT_PERMISSION_CLASSES': [
+            'rest_framework.permissions.IsAuthenticatedOrReadOnly',
+        ],
+        'DEFAULT_AUTHENTICATION_CLASSES': [
+            'rest_framework.authentication.SessionAuthentication',
+            'rest_framework.authentication.BasicAuthentication',
+        ],
+        'DEFAULT_FILTER_BACKENDS': [
+            'django_filters.rest_framework.DjangoFilterBackend',
+            'rest_framework.filters.SearchFilter',
+            'rest_framework.filters.OrderingFilter',
+        ],
+        'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+        'PAGE_SIZE': 20,
+    }
 
 # Email configuration for development
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
@@ -171,4 +178,3 @@ DEFAULT_FROM_EMAIL = 'noreply@studyhub.com'
 # EMAIL_USE_TLS = True
 # EMAIL_HOST_USER = 'your-email@gmail.com'
 # EMAIL_HOST_PASSWORD = 'your-app-password'
-

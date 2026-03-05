@@ -92,6 +92,30 @@ class WaitlistEntry(models.Model):
         constraints = [
             models.UniqueConstraint(fields=['session', 'user'], name='unique_waitlist_entry')
         ]
+
+class Attendance(models.Model):
+    """Track attendance for sessions created by leaders/admins."""
+    PRESENT = 'present'
+    ABSENT = 'absent'
+    STATUS_CHOICES = [
+        (PRESENT, 'Present'),
+        (ABSENT, 'Absent'),
+    ]
+    
+    session = models.ForeignKey(StudySession, on_delete=models.CASCADE, related_name='attendance')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='session_attendance')
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default=PRESENT)
+    marked_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name='marked_attendance')
+    marked_at = models.DateTimeField(default=timezone.now)
+    
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['session', 'user'], name='unique_attendance_entry')
+        ]
+        verbose_name_plural = 'Attendance'
+    
+    def __str__(self):
+        return f"{self.user.username} - {self.session.title} - {self.get_status_display()}"
 class StudyNote(models.Model):
     title = models.CharField(max_length=100)
     content = models.TextField()

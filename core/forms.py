@@ -2,46 +2,6 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from .models import StudySession, SubjectTag, UserProfile
-from django.utils import timezone
-from datetime import timedelta
-
-class OptgroupSelectWidget(forms.Select):
-    """
-    A Select widget that properly renders optgroups from grouped choices.
-    """
-    def optgroups(self, name, value, attrs=None):
-        groups = []
-        has_selected = False
-
-        for group_label, group_choices in self.choices:
-            if isinstance(group_choices, (list, tuple)):
-                # This is a group
-                group_choices = list(group_choices)
-                selected = value in [str(choice[0]) for choice in group_choices]
-                if selected:
-                    has_selected = True
-
-                groups.append((
-                    group_label,
-                    group_choices,
-                    selected,
-                ))
-            else:
-                # This is a single choice
-                selected = str(group_choices[0]) == str(value)
-                if selected:
-                    has_selected = True
-
-                groups.append((
-                    None,
-                    [group_choices],
-                    selected,
-                ))
-
-        if not has_selected and value:
-            groups.append((None, [('', value)], True))
-
-        return groups
 
 class CustomUserCreationForm(UserCreationForm):
     email = forms.EmailField(
@@ -96,14 +56,6 @@ class StudySessionForm(forms.ModelForm):
         widget=forms.TextInput(attrs={'class': 'form-control'}),
         label='Room Number'
     )
-    max_participants = forms.IntegerField(
-        required=False,
-        min_value=1,
-        widget=forms.NumberInput(attrs={'class': 'form-control'}),
-        label='Maximum Participants',
-        help_text='Leave blank for unlimited participants'
-    )
-    
     def __init__(self, *args, **kwargs):
         user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
@@ -125,7 +77,6 @@ class StudySessionForm(forms.ModelForm):
             try:
                 if not hasattr(user, 'profile'):
                     UserProfile.objects.get_or_create(user=user)
-                user_education_level = user.profile.education_level
                 # Build department choices from ALL subjects
                 all_departments_qs = SubjectTag.objects.values_list('department', flat=True).distinct()
                 all_departments = sorted([d for d in all_departments_qs if d])
@@ -164,7 +115,7 @@ class StudySessionForm(forms.ModelForm):
                         self.all_subjects[dept] = []
                     subject_data = (str(subject.id), str(subject.name))
                     self.all_subjects[dept].append(subject_data)
-            except Exception as e:
+            except Exception:
                 self.fields['department'] = forms.ChoiceField(
                     choices=[('', 'Error loading departments')],
                     widget=forms.Select(attrs={'class': 'form-control'}),
@@ -231,9 +182,6 @@ class StudySessionForm(forms.ModelForm):
         
         if start and end and end <= start:
             self.add_error('end_time', 'End time must be after start time.')
-        
-        # Allow any future time - no validation needed
-        pass
         
         is_virtual = cleaned.get('is_virtual')
         link = cleaned.get('virtual_link', '')

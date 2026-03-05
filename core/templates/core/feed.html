@@ -35,13 +35,13 @@
         <div class="card border-0 shadow-sm">
             <div class="card-body p-4">
                 <div class="row g-3 align-items-end">
-                    <div class="col-md-4">
+                    <div class="col-12 col-sm-6 col-md-3">
                         <label class="form-label fw-semibold">
                             <i class="fas fa-search me-2 text-primary"></i>Search Sessions
                         </label>
                         <input type="text" class="form-control" id="searchInput" name="q" placeholder="Search by title, subject, or description..." value="{{ q }}">
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-12 col-sm-6 col-md-2">
                         <label class="form-label fw-semibold">
                             <i class="fas fa-filter me-2 text-primary"></i>Session Type
                         </label>
@@ -51,7 +51,7 @@
                             <option value="in-person" {% if session_type == 'in-person' %}selected{% endif %}>In-Person</option>
                         </select>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-12 col-sm-6 col-md-2">
                         <label class="form-label fw-semibold">
                             <i class="fas fa-calendar me-2 text-primary"></i>Date Range
                         </label>
@@ -63,7 +63,18 @@
                             <option value="month" {% if date_range == 'month' %}selected{% endif %}>This Month</option>
                         </select>
                     </div>
-                    <div class="col-md-2">
+                    <div class="col-12 col-sm-6 col-md-3">
+                        <label class="form-label fw-semibold">
+                            <i class="fas fa-user-tag me-2 text-primary"></i>Creator Type
+                        </label>
+                        <select class="form-select" id="creatorTypeFilter" name="creator_type">
+                            <option value="" {% if not creator_type or creator_type == '' %}selected{% endif %}>All Creators</option>
+                            <option value="general" {% if creator_type == 'general' %}selected{% endif %}>General Users</option>
+                            <option value="leaders-admins" {% if creator_type == 'leaders-admins' %}selected{% endif %}>Leaders & Admins</option>
+                        </select>
+                        {% if creator_type %}<small class="text-muted d-block mt-1">Filter: {{ creator_type }}</small>{% endif %}
+                    </div>
+                    <div class="col-12 col-sm-6 col-md-2">
                         <button class="btn btn-outline-secondary w-100" id="clearFiltersBtn" type="button">
                             <i class="fas fa-times me-1"></i>Clear
                         </button>
@@ -82,7 +93,7 @@
                 <div class="stat-icon-sm mb-2">
                     <i class="fas fa-calendar-check text-success"></i>
                 </div>
-                <h5 class="fw-bold text-success mb-1" id="totalSessions">{{ sessions.count }}</h5>
+                <h5 class="fw-bold text-success mb-1" id="totalSessions">{{ sessions|length }}</h5>
                 <small class="text-muted">Total Sessions</small>
             </div>
         </div>
@@ -93,7 +104,7 @@
                 <div class="stat-icon-sm mb-2">
                     <i class="fas fa-clock text-info"></i>
                 </div>
-                <h5 class="fw-bold text-info mb-1" id="upcomingSessions">{{ upcoming_sessions_count|default:"0" }}</h5>
+                <h5 class="fw-bold text-info mb-1" id="upcomingSessions">{{ upcoming_sessions_count }}</h5>
                 <small class="text-muted">Upcoming Today</small>
             </div>
         </div>
@@ -231,7 +242,7 @@
         <div class="text-center mt-5">
             <div class="text-muted">
                 <small>
-                    Showing {{ sessions.count }} session{{ sessions.count|pluralize }}
+                    Showing {{ sessions|length }} session{{ sessions|length|pluralize }}
                 </small>
             </div>
         </div>
@@ -360,6 +371,7 @@
         const searchInput = document.getElementById('searchInput');
         const sessionTypeFilter = document.getElementById('sessionTypeFilter');
         const dateFilter = document.getElementById('dateFilter');
+        const creatorTypeFilter = document.getElementById('creatorTypeFilter');
         const clearFiltersBtn = document.getElementById('clearFiltersBtn');
         const localDatetimeInput = document.getElementById('localDatetimeInput');
         function setLocalDatetime() {
@@ -384,10 +396,17 @@
             setLocalDatetime();
             filtersForm.submit();
         });
+        creatorTypeFilter.addEventListener('change', function() {
+            setLocalDatetime();
+            // Ensure the value is set before submitting
+            console.log('Creator type filter changed to:', this.value);
+            filtersForm.submit();
+        });
         clearFiltersBtn.addEventListener('click', function() {
             searchInput.value = '';
             sessionTypeFilter.value = '';
             dateFilter.value = '';
+            creatorTypeFilter.value = '';
             setLocalDatetime();
             filtersForm.submit();
         });

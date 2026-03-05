@@ -1,14 +1,20 @@
 from django.urls import path, include
-from .views import home, create_group, group_details, join_session, leave_session, signup, profile, change_password, logout_view, landing, edit_session, delete_session, session_ics, join_waitlist, custom_login, mark_attendance, CASLoginViewCustom, cas_signup
-from rest_framework.routers import DefaultRouter
-from .views import StudySessionViewSet, SubjectTagViewSet
+from .views import home, create_group, group_details, join_session, leave_session, signup, profile, change_password, logout_view, landing, edit_session, delete_session, session_ics, join_waitlist, custom_login, mark_attendance
+
+# REST Framework router - conditional in case rest_framework is not installed
+try:
+    from rest_framework.routers import DefaultRouter
+    from .views import StudySessionViewSet, SubjectTagViewSet
+    router = DefaultRouter()
+    router.register(r'sessions', StudySessionViewSet)
+    router.register(r'tags', SubjectTagViewSet)
+    REST_FRAMEWORK_AVAILABLE = True
+except (ImportError, TypeError):
+    REST_FRAMEWORK_AVAILABLE = False
+    router = None
 
 # Define the app namespace
 app_name = 'core'
-
-router = DefaultRouter()
-router.register(r'sessions', StudySessionViewSet)
-router.register(r'tags', SubjectTagViewSet)
 
 urlpatterns = [
     path('', landing, name='landing'),
@@ -27,6 +33,9 @@ urlpatterns = [
     path('session/<int:pk>/waitlist/', join_waitlist, name='waitlist'),
     path('session/<int:pk>/calendar/', session_ics, name='calendar'),  # ICS download
     path('session/<int:pk>/attendance/', mark_attendance, name='attendance'),  # Mark attendance
-    path('api/', include(router.urls)),  # API endpoints
 ]
+
+# Add API endpoints if REST framework is available
+if REST_FRAMEWORK_AVAILABLE and router:
+    urlpatterns.append(path('api/', include(router.urls)))  # API endpoints
 

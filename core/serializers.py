@@ -1,6 +1,6 @@
 # core/serializers.py
 from rest_framework import serializers
-from .models import StudySession, SubjectTag, Message, SessionMember
+from .models import StudySession, SubjectTag, Message
 
 class SubjectTagSerializer(serializers.ModelSerializer):
     class Meta:
