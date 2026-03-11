@@ -33,6 +33,24 @@ DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
 
 ALLOWED_HOSTS = ['*']  # Will be restricted in production
 
+# CSRF: allow local development origins and optionally configure via env.
+_csrf_origins = [o.strip() for o in os.environ.get("CSRF_TRUSTED_ORIGINS", "").split(",") if o.strip()]
+if not _csrf_origins:
+    _csrf_origins = [
+        "http://localhost",
+        "http://127.0.0.1",
+        "http://0.0.0.0",
+        "https://localhost",
+        "https://127.0.0.1",
+        "https://0.0.0.0",
+    ]
+CSRF_TRUSTED_ORIGINS = _csrf_origins
+
+# Keep cookies non-secure in local dev unless explicitly overridden.
+if DEBUG:
+    CSRF_COOKIE_SECURE = False
+    SESSION_COOKIE_SECURE = False
+
 
 # Application definition
 
@@ -62,6 +80,7 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "core.middleware.OnboardingMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "core.middleware.SecurityHeadersMiddleware",
@@ -130,7 +149,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
 
-STATIC_URL = "static/"
+STATIC_URL = "/static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
 STATIC_ROOT = BASE_DIR / "staticfiles"
 

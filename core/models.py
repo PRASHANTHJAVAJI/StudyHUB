@@ -9,9 +9,9 @@ class SubjectTag(models.Model):
     PHD = 'phd'
     
     EDUCATION_LEVEL_CHOICES = [
-        (BACHELORS, 'Bachelors'),
+        (BACHELORS, 'Bachelor'),
         (MASTERS, 'Masters'),
-        (PHD, 'PhD'),
+        (PHD, 'Doctorate/PhD'),
     ]
     
     name = models.CharField(max_length=60, unique=True)
@@ -37,6 +37,7 @@ class StudySession(models.Model):
     title = models.CharField(max_length=120)
     description = models.TextField(blank=True)
     subjects = models.ManyToManyField(SubjectTag, blank=True, related_name='sessions')
+    visible_departments = models.ManyToManyField('Department', blank=True, related_name='visible_sessions')
     start_time = models.DateTimeField()
     end_time = models.DateTimeField(null=True, blank=True)
     is_virtual = models.BooleanField(default=False)
@@ -128,14 +129,19 @@ class UserProfile(models.Model):
     PHD = 'phd'
     
     EDUCATION_LEVEL_CHOICES = [
-        (BACHELORS, 'Bachelors'),
+        (BACHELORS, 'Bachelor'),
         (MASTERS, 'Masters'),
-        (PHD, 'PhD'),
+        (PHD, 'Doctorate/PhD'),
     ]
     
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='profile')
     education_level = models.CharField(max_length=20, choices=EDUCATION_LEVEL_CHOICES, default=BACHELORS)
+    department = models.ForeignKey('Department', on_delete=models.SET_NULL, null=True, blank=True)
+    major = models.ForeignKey('Major', on_delete=models.SET_NULL, null=True, blank=True)
+    minor = models.ForeignKey('Minor', on_delete=models.SET_NULL, null=True, blank=True)
+    onboarding_complete = models.BooleanField(default=False)
     is_student_leader = models.BooleanField(default=False)  # <-- Added field
+    is_faculty = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
@@ -146,3 +152,34 @@ class UserProfile(models.Model):
         verbose_name = "User Profile"
         verbose_name_plural = "User Profiles"
 
+
+class Department(models.Model):
+    name = models.CharField(max_length=80, unique=True)
+
+    class Meta:
+        ordering = ['name']
+
+    def __str__(self):
+        return self.name
+
+
+class Major(models.Model):
+    name = models.CharField(max_length=80, unique=True)
+    department = models.ForeignKey(Department, on_delete=models.SET_NULL, null=True, blank=True, related_name='majors')
+
+    class Meta:
+        ordering = ['name']
+
+    def __str__(self):
+        return self.name
+
+
+class Minor(models.Model):
+    name = models.CharField(max_length=80, unique=True)
+    department = models.ForeignKey(Department, on_delete=models.SET_NULL, null=True, blank=True, related_name='minors')
+
+    class Meta:
+        ordering = ['name']
+
+    def __str__(self):
+        return self.name

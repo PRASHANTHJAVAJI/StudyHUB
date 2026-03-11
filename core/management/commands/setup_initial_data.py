@@ -1,5 +1,5 @@
 from django.core.management.base import BaseCommand
-from core.models import SubjectTag
+from core.models import SubjectTag, Department, Major, Minor
 
 class Command(BaseCommand):
     help = 'Set up initial data for the application'
@@ -44,3 +44,34 @@ class Command(BaseCommand):
         self.stdout.write(
             self.style.SUCCESS(f'Successfully created {created_count} new subjects')
         )
+
+        # Seed academic structure data
+        departments = [
+            'Computer Science',
+            'Electrical Science',
+            'Architecture',
+        ]
+        for dept_name in departments:
+            Department.objects.get_or_create(name=dept_name)
+
+        major_seed = {
+            'Computer Science': ['Software Engineering', 'Data Science'],
+            'Electrical Science': ['Embedded Systems', 'Power Systems'],
+            'Architecture': ['Urban Design', 'Sustainable Architecture'],
+        }
+
+        minor_seed = {
+            'Computer Science': ['Cybersecurity', 'Human-Computer Interaction'],
+            'Electrical Science': ['Robotics', 'Internet of Things'],
+            'Architecture': ['Landscape Design', 'History of Architecture'],
+        }
+
+        for dept_name, majors in major_seed.items():
+            dept = Department.objects.get(name=dept_name)
+            for major in majors:
+                Major.objects.get_or_create(name=major, defaults={'department': dept})
+
+        for dept_name, minors in minor_seed.items():
+            dept = Department.objects.get(name=dept_name)
+            for minor in minors:
+                Minor.objects.get_or_create(name=minor, defaults={'department': dept})

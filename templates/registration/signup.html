@@ -4,292 +4,305 @@
 {% block title %}Sign Up - StudyHub{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-lg-6 col-md-8">
-        <div class="text-center mb-4">
-            <h1 class="h2 fw-bold text-primary mb-3">
-                <i class="fas fa-user-plus me-2"></i>Join StudyHub
-            </h1>
-            <p class="text-muted">Create your account and start your collaborative learning journey</p>
+<div class="auth-screen">
+    <div class="auth-shell">
+        <div class="auth-hero">
+            <div class="auth-badge">Join StudyHub</div>
+            <h1 class="auth-title">Create Your Account</h1>
+            <p class="auth-subtitle">
+                Build your study network and start collaborating right away.
+            </p>
+            <div class="auth-features">
+                <div class="auth-feature"><span>Find study partners fast</span></div>
+                <div class="auth-feature"><span>Organize sessions with ease</span></div>
+                <div class="auth-feature"><span>Track your progress</span></div>
+            </div>
         </div>
 
-        <div class="card border-0 shadow-lg">
-            <div class="card-body p-4 p-md-5">
-                <form method="post" id="signupForm" class="needs-validation" novalidate>
-                    {% csrf_token %}
-                    
-                    <!-- Username Field -->
-                    <div class="mb-4">
-                        <label for="{{ form.username.id_for_label }}" class="form-label fw-semibold">
-                            <i class="fas fa-user me-2 text-primary"></i>Username
-                        </label>
-                        {{ form.username }}
-                        {% if form.username.errors %}
-                            <div class="invalid-feedback d-block">
-                                {% for error in form.username.errors %}
-                                    <i class="fas fa-exclamation-circle me-1"></i>{{ error }}
-                                {% endfor %}
-                            </div>
-                        {% endif %}
-                        <div class="form-text">
-                            <i class="fas fa-info-circle me-1"></i>Choose a unique username for your profile
-                        </div>
-                    </div>
+        <div class="auth-card">
+            <div class="auth-card-header">
+                <h2>Sign up</h2>
+                <p>Start with the basics and finish setup after logging in.</p>
+            </div>
 
-                    <!-- Email Field -->
-                    <div class="mb-4">
-                        <label for="{{ form.email.id_for_label }}" class="form-label fw-semibold">
-                            <i class="fas fa-envelope me-2 text-primary"></i>Email Address
-                        </label>
-                        {{ form.email }}
-                        {% if form.email.errors %}
-                            <div class="invalid-feedback d-block">
-                                {% for error in form.email.errors %}
-                                    <i class="fas fa-exclamation-circle me-1"></i>{{ error }}
-                                {% endfor %}
-                            </div>
-                        {% endif %}
-                        <div class="form-text">
-                            <i class="fas fa-info-circle me-1"></i>We'll never share your email with anyone else
-                        </div>
-                    </div>
+            <form method="post" id="signupForm" class="auth-form needs-validation" novalidate>
+                {% csrf_token %}
 
-                    <!-- First Name Field -->
-                    <div class="mb-4">
-                        <label for="{{ form.first_name.id_for_label }}" class="form-label fw-semibold">
-                            <i class="fas fa-user me-2 text-primary"></i>First Name
-                        </label>
-                        {{ form.first_name }}
-                        {% if form.first_name.errors %}
-                            <div class="invalid-feedback d-block">
-                                {% for error in form.first_name.errors %}
-                                    <i class="fas fa-exclamation-circle me-1"></i>{{ error }}
-                                {% endfor %}
-                            </div>
-                        {% endif %}
-                        <div class="form-text">
-                            <i class="fas fa-info-circle me-1"></i>Enter your first name
+                <!-- Username Field -->
+                <div class="mb-4">
+                    <label for="{{ form.username.id_for_label }}" class="form-label fw-semibold">
+                        Username
+                    </label>
+                    {{ form.username }}
+                    {% if form.username.errors %}
+                        <div class="invalid-feedback d-block">
+                            {% for error in form.username.errors %}
+                                <i class="fas fa-exclamation-circle me-1"></i>{{ error }}
+                            {% endfor %}
                         </div>
+                    {% endif %}
+                    <div class="form-text">
+                        Choose a unique username for your profile
                     </div>
+                </div>
 
-                    <!-- Last Name Field -->
-                    <div class="mb-4">
-                        <label for="{{ form.last_name.id_for_label }}" class="form-label fw-semibold">
-                            <i class="fas fa-user me-2 text-primary"></i>Last Name
-                        </label>
-                        {{ form.last_name }}
-                        {% if form.last_name.errors %}
-                            <div class="invalid-feedback d-block">
-                                {% for error in form.last_name.errors %}
-                                    <i class="fas fa-exclamation-circle me-1"></i>{{ error }}
-                                {% endfor %}
-                            </div>
-                        {% endif %}
-                        <div class="form-text">
-                            <i class="fas fa-info-circle me-1"></i>Enter your last name
+                <!-- Email Field -->
+                <div class="mb-4">
+                    <label for="{{ form.email.id_for_label }}" class="form-label fw-semibold">
+                        Email Address
+                    </label>
+                    {{ form.email }}
+                    {% if form.email.errors %}
+                        <div class="invalid-feedback d-block">
+                            {% for error in form.email.errors %}
+                                <i class="fas fa-exclamation-circle me-1"></i>{{ error }}
+                            {% endfor %}
                         </div>
+                    {% endif %}
+                    <div class="form-text">
+                        We'll never share your email with anyone else
                     </div>
+                </div>
 
-                    <!-- Education Level Field -->
-                    <div class="mb-4">
-                        <label for="{{ form.education_level.id_for_label }}" class="form-label fw-semibold">
-                            <i class="fas fa-graduation-cap me-2 text-primary"></i>Education Level
-                        </label>
-                        {{ form.education_level }}
-                        {% if form.education_level.errors %}
-                            <div class="invalid-feedback d-block">
-                                {% for error in form.education_level.errors %}
-                                    <i class="fas fa-exclamation-circle me-1"></i>{{ error }}
-                                {% endfor %}
-                            </div>
-                        {% endif %}
-                        <div class="form-text">
-                            <i class="fas fa-info-circle me-1"></i>This helps us match you with relevant study sessions
-                        </div>
-                    </div>
-
-                    <!-- Password Field -->
-                    <div class="mb-4">
-                        <label for="{{ form.password1.id_for_label }}" class="form-label fw-semibold">
-                            <i class="fas fa-lock me-2 text-primary"></i>Password
-                        </label>
-                        <div class="input-group">
-                            {{ form.password1 }}
-                            <button class="btn btn-outline-secondary" type="button" id="togglePassword1">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                        </div>
-                        {% if form.password1.errors %}
-                            <div class="invalid-feedback d-block">
-                                {% for error in form.password1.errors %}
-                                    <i class="fas fa-exclamation-circle me-1"></i>{{ error }}
-                                {% endfor %}
-                            </div>
-                        {% endif %}
-                        <div class="password-strength mt-2" id="passwordStrength">
-                            <div class="progress" style="height: 6px;">
-                                <div class="progress-bar" role="progressbar" style="width: 0%"></div>
-                            </div>
-                            <small class="text-muted mt-1 d-block">Password strength: <span id="strengthText">Weak</span></small>
-                        </div>
-                    </div>
-
-                    <!-- Confirm Password Field -->
-                    <div class="mb-4">
-                        <label for="{{ form.password2.id_for_label }}" class="form-label fw-semibold">
-                            <i class="fas fa-lock me-2 text-primary"></i>Confirm Password
-                        </label>
-                        <div class="input-group">
-                            {{ form.password2 }}
-                            <button class="btn btn-outline-secondary" type="button" id="togglePassword2">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                        </div>
-                        {% if form.password2.errors %}
-                            <div class="invalid-feedback d-block">
-                                {% for error in form.password2.errors %}
-                                    <i class="fas fa-exclamation-circle me-1"></i>{{ error }}
-                                {% endfor %}
-                            </div>
-                        {% endif %}
-                        <div class="password-match mt-2" id="passwordMatch">
-                            <i class="fas fa-check-circle text-success me-1" style="display: none;"></i>
-                            <i class="fas fa-times-circle text-danger me-1" style="display: none;"></i>
-                            <small class="text-muted">Passwords must match</small>
-                        </div>
-                    </div>
-
-                    <!-- Terms and Conditions -->
-                    <div class="mb-4">
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="termsCheck" required>
-                            <label class="form-check-label" for="termsCheck">
-                                I agree to the <a href="#" class="text-primary">Terms and Conditions</a> and 
-                                <a href="#" class="text-primary">Privacy Policy</a>
-                            </label>
-                        </div>
-                    </div>
-
-                    <!-- Submit Button -->
-                    <div class="d-grid">
-                        <button type="submit" class="btn btn-primary btn-lg" id="submitBtn">
-                            <i class="fas fa-rocket me-2"></i>Create Account
+                <!-- Password Field -->
+                <div class="mb-4">
+                    <label for="{{ form.password1.id_for_label }}" class="form-label fw-semibold">
+                        Password
+                    </label>
+                    <div class="input-group">
+                        {{ form.password1 }}
+                        <button class="btn btn-outline-secondary" type="button" id="togglePassword1">
+                            <i class="fas fa-eye"></i>
                         </button>
                     </div>
-                </form>
-                
-                <!-- RICE SSO Signup Option -->
-                <hr class="my-4">
-                <div class="d-grid">
-                    <a href="{% url 'cas_signup' %}" class="btn btn-outline-primary btn-lg">
-                        <i class="fas fa-university me-2"></i>Signup using RICE email ID
-                    </a>
+                    {% if form.password1.errors %}
+                        <div class="invalid-feedback d-block">
+                            {% for error in form.password1.errors %}
+                                <i class="fas fa-exclamation-circle me-1"></i>{{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    <div class="password-strength mt-2" id="passwordStrength">
+                        <div class="progress" style="height: 6px;">
+                            <div class="progress-bar" role="progressbar" style="width: 0%"></div>
+                        </div>
+                        <small class="text-muted mt-1 d-block">Password strength: <span id="strengthText">Weak</span></small>
+                    </div>
                 </div>
 
-                <!-- Login Link -->
-                <div class="text-center mt-4">
-                    <p class="mb-0">
-                        Already have an account? 
-                        <a href="{% url 'login' %}" class="text-primary fw-semibold">
-                            <i class="fas fa-sign-in-alt me-1"></i>Sign In
-                        </a>
-                    </p>
+                <!-- Confirm Password Field -->
+                <div class="mb-4">
+                    <label for="{{ form.password2.id_for_label }}" class="form-label fw-semibold">
+                        Confirm Password
+                    </label>
+                    <div class="input-group">
+                        {{ form.password2 }}
+                        <button class="btn btn-outline-secondary" type="button" id="togglePassword2">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                    {% if form.password2.errors %}
+                        <div class="invalid-feedback d-block">
+                            {% for error in form.password2.errors %}
+                                <i class="fas fa-exclamation-circle me-1"></i>{{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    <div class="password-match mt-2" id="passwordMatch">
+                        <i class="fas fa-check-circle text-success me-1" style="display: none;"></i>
+                        <i class="fas fa-times-circle text-danger me-1" style="display: none;"></i>
+                        <small class="text-muted">Passwords must match</small>
+                    </div>
                 </div>
-            </div>
-        </div>
 
-        <!-- Benefits Section -->
-        <div class="row mt-4 g-3">
-            <div class="col-md-4">
-                <div class="text-center p-3">
-                    <div class="benefit-icon mb-2">
-                        <i class="fas fa-users fa-2x text-primary"></i>
+                <!-- Terms and Conditions -->
+                <div class="mb-4">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="termsCheck" required>
+                        <label class="form-check-label" for="termsCheck">
+                            I agree to the <a href="#" class="text-primary">Terms and Conditions</a> and
+                            <a href="#" class="text-primary">Privacy Policy</a>
+                        </label>
                     </div>
-                    <h6 class="fw-semibold">Find Study Partners</h6>
-                    <small class="text-muted">Connect with students in your field</small>
                 </div>
-            </div>
-            <div class="col-md-4">
-                <div class="text-center p-3">
-                    <div class="benefit-icon mb-2">
-                        <i class="fas fa-calendar-alt fa-2x text-success"></i>
-                    </div>
-                    <h6 class="fw-semibold">Flexible Sessions</h6>
-                    <small class="text-muted">Study when it works for you</small>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="text-center p-3">
-                    <div class="benefit-icon mb-2">
-                        <i class="fas fa-chart-line fa-2x text-warning"></i>
-                    </div>
-                    <h6 class="fw-semibold">Track Progress</h6>
-                    <small class="text-muted">Monitor your learning journey</small>
-                </div>
+
+                <!-- Submit Button -->
+                <button type="submit" class="btn btn-primary btn-lg w-100" id="submitBtn">
+                    <i class="fas fa-rocket me-2"></i>Create Account
+                </button>
+            </form>
+
+            <div class="auth-footer">
+                <p>Already have an account? <a href="{% url 'core:login' %}">Sign In</a></p>
             </div>
         </div>
     </div>
 </div>
 
 <style>
-    .benefit-icon {
-        width: 60px;
-        height: 60px;
-        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-        border-radius: 50%;
+    .navbar,
+    .footer {
+        display: none;
+    }
+
+    .main-content {
+        background: transparent;
+        box-shadow: none;
+        padding: 0;
+        max-width: none;
+        margin: 0;
+        animation: none;
+    }
+
+    .container-fluid {
+        padding-top: 0;
+    }
+
+    .auth-screen {
+        min-height: 100vh;
         display: flex;
         align-items: center;
         justify-content: center;
-        margin: 0 auto;
+        padding: 0;
+        background: var(--bg-gradient);
+    }
+
+    .auth-shell {
+        width: 100%;
+        max-width: 1080px;
+        display: grid;
+        gap: 28px;
+        align-items: center;
+        padding: 32px;
+        min-height: 100vh;
+    }
+
+    .auth-hero {
         color: white;
-        transition: all 0.3s ease;
+        padding: 30px;
+        border-radius: 22px;
+        background: var(--panel-color);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        box-shadow: 0 20px 45px rgba(15, 23, 42, 0.35);
+        backdrop-filter: blur(8px);
     }
-    
-    .benefit-icon:hover {
-        transform: scale(1.1);
+
+    .auth-badge {
+        display: inline-flex;
+        padding: 6px 12px;
+        border-radius: 999px;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        background: rgba(255, 255, 255, 0.18);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        margin-bottom: 16px;
     }
-    
+
+    .auth-title {
+        font-size: clamp(2rem, 3vw, 2.6rem);
+        font-weight: 700;
+        margin-bottom: 12px;
+    }
+
+    .auth-subtitle {
+        font-size: 1.05rem;
+        opacity: 0.9;
+        margin-bottom: 20px;
+    }
+
+    .auth-features {
+        display: grid;
+        gap: 10px;
+    }
+
+    .auth-feature {
+        padding: 10px 14px;
+        border-radius: 12px;
+        background: rgba(15, 23, 42, 0.3);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
+    .auth-card {
+        background: var(--surface-strong);
+        border-radius: 22px;
+        padding: 30px;
+        box-shadow: var(--card-shadow);
+        border: 1px solid var(--nav-border);
+    }
+
+    .auth-card-header h2 {
+        font-weight: 700;
+        margin-bottom: 6px;
+        color: var(--text-color);
+    }
+
+    .auth-card-header p {
+        color: var(--text-muted);
+        margin-bottom: 22px;
+    }
+
+    .auth-form .form-control {
+        border-radius: 12px;
+        border: 2px solid var(--border-color);
+        padding: 12px 14px;
+    }
+
+    .auth-form .form-control:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 0.2rem var(--ring-color);
+    }
+
     .password-strength .progress-bar {
         transition: all 0.3s ease;
     }
-    
-    .form-control:focus, .form-select:focus {
-        border-color: var(--primary-color);
-        box-shadow: 0 0 0 0.2rem rgba(99, 102, 241, 0.25);
-    }
-    
-    .card {
-        border-radius: 16px;
-        overflow: hidden;
-    }
-    
+
     .btn-lg {
         padding: 12px 24px;
         font-size: 1.1rem;
         font-weight: 600;
     }
-    
-    .form-control-lg, .form-select-lg {
-        padding: 12px 16px;
-        font-size: 1rem;
+
+    .auth-footer {
+        text-align: center;
+        margin-top: 18px;
+        color: var(--text-muted);
     }
-    
-    /* Style form fields */
-    input[type="text"], input[type="email"], input[type="password"], select, textarea {
-        padding: 12px 16px;
-        font-size: 1rem;
-        border-radius: 12px;
-        border: 2px solid var(--border-color);
-        transition: all 0.3s ease;
-        width: 100%;
+
+    .auth-footer a {
+        color: var(--primary-color);
+        font-weight: 600;
+        text-decoration: none;
     }
-    
-    input[type="text"]:focus, input[type="email"]:focus, input[type="password"]:focus, select:focus, textarea:focus {
-        border-color: var(--primary-color);
-        box-shadow: 0 0 0 0.2rem rgba(99, 102, 241, 0.25);
-        transform: translateY(-1px);
-        outline: none;
+
+    @media (min-width: 992px) {
+        .auth-shell {
+            grid-template-columns: 1.1fr 1fr;
+        }
     }
+
+    @media (max-width: 768px) {
+        .auth-screen {
+            padding: 0;
+        }
+
+        .auth-hero,
+        .auth-card {
+            padding: 22px;
+        }
+    }
+
+    @media (max-height: 820px) {
+        .auth-screen {
+            padding: 0;
+        }
+
+        .auth-hero,
+        .auth-card {
+            padding: 20px;
+        }
+    }
+
 </style>
 
 <script>
@@ -441,4 +454,17 @@
         });
     });
 </script>
+
+{% if form.username.errors or form.email.errors %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        {% if form.username.errors %}
+            showToast("{{ form.username.errors.0|escapejs }}", 'warning');
+        {% endif %}
+        {% if form.email.errors %}
+            showToast("{{ form.email.errors.0|escapejs }}", 'warning');
+        {% endif %}
+    });
+</script>
+{% endif %}
 {% endblock %}

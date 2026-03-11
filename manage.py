@@ -7,6 +7,10 @@ import sys
 def main():
     """Run administrative tasks."""
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "studyhub.settings")
+    # Suppress Django's dev-server warning when using runserver locally.
+    if len(sys.argv) > 1 and sys.argv[1] == "runserver":
+        os.environ.setdefault("DJANGO_RUNSERVER_HIDE_WARNING", "true")
+        os.environ.setdefault("DEBUG", "true")
     try:
         from django.core.management import execute_from_command_line
     except ImportError as exc:

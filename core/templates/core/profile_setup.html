@@ -1,0 +1,351 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Complete Your Profile - StudyHub{% endblock %}
+
+{% block content %}
+<div class="setup-overlay">
+    <div class="setup-shell">
+        <div class="setup-hero">
+            <div class="setup-badge">Step 1 of 1</div>
+            <h1 class="setup-title">Complete Your Profile</h1>
+            <p class="setup-subtitle">
+                A few quick details help us personalize sessions and suggestions.
+            </p>
+            <ul class="setup-highlights">
+                <li>Match you with relevant study groups</li>
+                <li>Improve recommendations for sessions</li>
+                <li>Keep your profile complete and clear</li>
+            </ul>
+            <div class="setup-note">
+                You can change this anytime from your profile page.
+            </div>
+        </div>
+
+        <div class="setup-card">
+            <div class="setup-header">
+                <h2 class="h4 fw-bold mb-1">Academic Details</h2>
+                <p class="text-muted mb-0">Choose the options that best fit you.</p>
+            </div>
+
+            <form method="post" class="setup-form mt-4">
+                {% csrf_token %}
+
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger">
+                        {{ form.non_field_errors }}
+                    </div>
+                {% endif %}
+
+                <div class="setup-field">
+                    <label for="{{ form.education_level.id_for_label }}" class="form-label fw-semibold">
+                        Education Level
+                    </label>
+                    {{ form.education_level }}
+                    {% if form.education_level.errors %}
+                        <div class="invalid-feedback d-block">
+                            {{ form.education_level.errors }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="setup-field">
+                    <label for="{{ form.department.id_for_label }}" class="form-label fw-semibold">
+                        Department
+                    </label>
+                    {{ form.department }}
+                    {% if form.department.errors %}
+                        <div class="invalid-feedback d-block">
+                            {{ form.department.errors }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="setup-field">
+                    <label for="{{ form.major.id_for_label }}" class="form-label fw-semibold">
+                        Major
+                    </label>
+                    {{ form.major }}
+                    {% if form.major.errors %}
+                        <div class="invalid-feedback d-block">
+                            {{ form.major.errors }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="setup-field">
+                    <label for="{{ form.minor.id_for_label }}" class="form-label fw-semibold">
+                        Minor (optional)
+                    </label>
+                    {{ form.minor }}
+                    {% if form.minor.errors %}
+                        <div class="invalid-feedback d-block">
+                            {{ form.minor.errors }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-lg w-100">
+                    Save and Continue
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    .navbar,
+    .footer {
+        display: none;
+    }
+
+    .main-content {
+        background: transparent;
+        box-shadow: none;
+        padding: 0;
+        max-width: none;
+        margin: 0;
+        animation: none;
+        transform: none;
+        backdrop-filter: none !important;
+        filter: none !important;
+    }
+
+    .container-fluid {
+        padding-top: 0 !important;
+    }
+
+    .messages {
+        display: none;
+    }
+
+    body {
+        overflow: hidden;
+    }
+
+    .setup-overlay {
+        position: fixed;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        padding: 24px;
+        overflow: auto;
+        z-index: 1000;
+        background: var(--bg-gradient);
+    }
+
+    .setup-shell {
+        width: min(980px, 100%);
+        display: grid;
+        gap: 24px;
+        align-items: stretch;
+        margin: 0 auto;
+    }
+
+    .setup-hero {
+        color: white;
+        padding: 28px;
+        border-radius: 20px;
+        background: var(--panel-color);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        box-shadow: 0 20px 45px rgba(15, 23, 42, 0.35);
+        backdrop-filter: blur(8px);
+    }
+
+    .setup-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.85rem;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        padding: 6px 12px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.18);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        margin-bottom: 18px;
+    }
+
+    .setup-title {
+        font-weight: 700;
+        font-size: clamp(1.8rem, 2.4vw, 2.4rem);
+        margin-bottom: 12px;
+    }
+
+    .setup-subtitle {
+        font-size: 1.05rem;
+        opacity: 0.9;
+        margin-bottom: 18px;
+    }
+
+    .setup-highlights {
+        list-style: none;
+        padding-left: 0;
+        margin-bottom: 20px;
+    }
+
+    .setup-highlights li {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 10px;
+        font-size: 0.98rem;
+    }
+
+    .setup-highlights li::before {
+        content: '';
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--accent-color);
+        box-shadow: 0 0 0 4px rgba(6, 182, 212, 0.25);
+    }
+
+    .setup-note {
+        font-size: 0.9rem;
+        opacity: 0.75;
+    }
+
+    .setup-card {
+        background: var(--surface-strong);
+        border-radius: 20px;
+        padding: 30px;
+        box-shadow: var(--card-shadow);
+        border: 1px solid var(--nav-border);
+    }
+
+    .setup-header h2 {
+        color: var(--text-color);
+    }
+
+    .setup-field {
+        margin-bottom: 18px;
+    }
+
+    .setup-form .form-select {
+        border-radius: 12px;
+        border: 2px solid var(--border-color);
+        padding: 12px 14px;
+    }
+
+    .setup-form .form-select:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 0.2rem var(--ring-color);
+    }
+
+    @media (min-width: 992px) {
+        .setup-shell {
+            grid-template-columns: 1.1fr 1fr;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .setup-overlay {
+            padding: 16px;
+        }
+
+        .setup-hero,
+        .setup-card {
+            padding: 22px;
+        }
+    }
+
+    @media (max-height: 780px) {
+        .setup-overlay {
+            align-items: start;
+        }
+
+        .setup-shell {
+            margin-top: 24px;
+            margin-bottom: 24px;
+        }
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const departmentSelect = document.getElementById('{{ form.department.id_for_label }}');
+        const majorSelect = document.getElementById('{{ form.major.id_for_label }}');
+        const minorSelect = document.getElementById('{{ form.minor.id_for_label }}');
+
+        if (!departmentSelect || !majorSelect || !minorSelect) {
+            return;
+        }
+
+        const urlTemplate = "{% url 'core:department_options' 0 %}";
+        const majorPlaceholder = "Select a major";
+        const minorPlaceholder = "Select a minor (optional)";
+
+        const selectedMajor = "{{ form.major.value|default_if_none:''|escapejs }}";
+        const selectedMinor = "{{ form.minor.value|default_if_none:''|escapejs }}";
+
+        const setOptions = (select, items, placeholder, selectedValue = '') => {
+            select.innerHTML = '';
+            const placeholderOption = document.createElement('option');
+            placeholderOption.value = '';
+            placeholderOption.textContent = placeholder;
+            select.appendChild(placeholderOption);
+
+            items.forEach(item => {
+                const opt = document.createElement('option');
+                opt.value = item.id;
+                opt.textContent = item.name;
+                if (selectedValue && String(item.id) === String(selectedValue)) {
+                    opt.selected = true;
+                }
+                select.appendChild(opt);
+            });
+        };
+
+        const toggleSelect = (select, enabled) => {
+            select.disabled = !enabled;
+            if (!enabled) {
+                select.value = '';
+            }
+        };
+
+        const loadOptions = async (departmentId, preserveSelection = false) => {
+            if (!departmentId) {
+                setOptions(majorSelect, [], majorPlaceholder);
+                setOptions(minorSelect, [], minorPlaceholder);
+                toggleSelect(majorSelect, false);
+                toggleSelect(minorSelect, false);
+                return;
+            }
+
+            toggleSelect(majorSelect, true);
+            toggleSelect(minorSelect, true);
+
+            const url = urlTemplate.replace('/0/', `/${departmentId}/`);
+            try {
+                const response = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+                if (!response.ok) {
+                    throw new Error('Failed to load options');
+                }
+                const data = await response.json();
+                setOptions(
+                    majorSelect,
+                    data.majors || [],
+                    majorPlaceholder,
+                    preserveSelection ? selectedMajor : ''
+                );
+                setOptions(
+                    minorSelect,
+                    data.minors || [],
+                    minorPlaceholder,
+                    preserveSelection ? selectedMinor : ''
+                );
+            } catch (err) {
+                setOptions(majorSelect, [], majorPlaceholder);
+                setOptions(minorSelect, [], minorPlaceholder);
+            }
+        };
+
+        departmentSelect.addEventListener('change', () => {
+            loadOptions(departmentSelect.value, false);
+        });
+
+        loadOptions(departmentSelect.value, true);
+    });
+</script>
+{% endblock %}

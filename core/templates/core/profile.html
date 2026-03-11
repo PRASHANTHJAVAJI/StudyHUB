@@ -25,11 +25,28 @@
                     <i class="fas fa-graduation-cap me-2"></i>
                     {{ user.profile.get_education_level_display }}
                 </span>
-                {% if user.profile.is_student_leader %}
+                {% if user.is_staff or user.is_superuser %}
+                <span class="badge bg-danger fs-6 px-3 py-2 ms-2">
+                    <i class="fas fa-shield-alt me-2"></i>Admin
+                </span>
+                {% elif user.profile.is_faculty %}
+                <span class="badge bg-info fs-6 px-3 py-2 ms-2">
+                    <i class="fas fa-chalkboard-teacher me-2"></i>Faculty
+                </span>
+                {% elif user.profile.is_student_leader %}
                 <span class="badge bg-success fs-6 px-3 py-2 ms-2">
                     <i class="fas fa-star me-2"></i>Student Leader
                 </span>
                 {% endif %}
+            </div>
+            <div class="theme-toggle mt-3">
+                <div class="d-inline-flex align-items-center gap-2">
+                    <span class="text-muted">Theme</span>
+                    <div class="form-check form-switch mb-0">
+                        <input class="form-check-input" type="checkbox" id="themeToggle">
+                        <label class="form-check-label" for="themeToggle">Dark Mode</label>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -93,11 +110,49 @@
                                 <span class="fw-semibold">{{ user.email }}</span>
                             </div>
                         </div>
+
+                        <div class="info-item mb-3">
+                            <label class="form-label fw-semibold text-muted">Role</label>
+                            <div class="d-flex align-items-center">
+                                <span class="fw-semibold">
+                                    {% if user.is_staff or user.is_superuser %}
+                                        Admin
+                                    {% elif user.profile.is_faculty %}
+                                        Faculty
+                                    {% elif user.profile.is_student_leader %}
+                                        Student Leader
+                                    {% else %}
+                                        Student
+                                    {% endif %}
+                                </span>
+                            </div>
+                        </div>
                         
                         <div class="info-item mb-3">
                             <label class="form-label fw-semibold text-muted">Education Level</label>
                             <div class="d-flex align-items-center">
                                 <span class="fw-semibold">{{ user.profile.get_education_level_display }}</span>
+                            </div>
+                        </div>
+
+                        <div class="info-item mb-3">
+                            <label class="form-label fw-semibold text-muted">Department</label>
+                            <div class="d-flex align-items-center">
+                                <span class="fw-semibold">{{ user.profile.department|default:"Not set" }}</span>
+                            </div>
+                        </div>
+
+                        <div class="info-item mb-3">
+                            <label class="form-label fw-semibold text-muted">Major</label>
+                            <div class="d-flex align-items-center">
+                                <span class="fw-semibold">{{ user.profile.major|default:"Not set" }}</span>
+                            </div>
+                        </div>
+
+                        <div class="info-item mb-3">
+                            <label class="form-label fw-semibold text-muted">Minor</label>
+                            <div class="d-flex align-items-center">
+                                <span class="fw-semibold">{{ user.profile.minor|default:"Not set" }}</span>
                             </div>
                         </div>
                         
@@ -184,7 +239,7 @@
     .avatar-circle {
         width: 120px;
         height: 120px;
-        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        background: var(--primary-color);
         border-radius: 50%;
         display: flex;
         align-items: center;
@@ -225,13 +280,14 @@
     .stat-icon {
         width: 60px;
         height: 60px;
-        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        background: var(--surface-muted);
+        border: 1px solid var(--nav-border);
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
         margin: 0 auto;
-        color: white;
+        color: var(--text-color);
     }
     
     .info-item, .security-item {
@@ -241,7 +297,7 @@
     }
     
     .info-item:hover, .security-item:hover {
-        background-color: rgba(99, 102, 241, 0.05);
+        background-color: var(--primary-soft);
     }
     
     .activity-timeline {
@@ -270,7 +326,7 @@
         top: 0;
         width: 40px;
         height: 40px;
-        background: white;
+        background: var(--surface-strong);
         border: 2px solid var(--primary-color);
         border-radius: 50%;
         display: flex;
@@ -280,10 +336,20 @@
     }
     
     .activity-content {
-        background: rgba(99, 102, 241, 0.05);
+        background: var(--primary-soft);
         padding: 1rem;
         border-radius: 12px;
         border-left: 4px solid var(--primary-color);
+    }
+
+    .theme-toggle .form-check-input {
+        cursor: pointer;
+    }
+
+    .theme-toggle .form-check-label {
+        cursor: pointer;
+        color: var(--text-muted);
+        font-weight: 500;
     }
     
     .card {
@@ -314,6 +380,17 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // Theme toggle
+        const themeToggle = document.getElementById('themeToggle');
+        if (themeToggle) {
+            const currentTheme = document.documentElement.getAttribute('data-theme') || 'mixed';
+            themeToggle.checked = currentTheme === 'dark';
+            themeToggle.addEventListener('change', () => {
+                const nextTheme = themeToggle.checked ? 'dark' : 'mixed';
+                document.documentElement.setAttribute('data-theme', nextTheme);
+                localStorage.setItem('studyhub_theme', nextTheme);
+            });
+        }
         // Remove JS stat simulation and activity simulation
         // Only keep hover effects and button toasts
         // Add hover effects to stat cards

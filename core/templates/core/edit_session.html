@@ -99,6 +99,20 @@
                         </div>
                     </div>
 
+                    {% if form.visible_departments %}
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold">
+                            <i class="fas fa-eye me-2 text-primary"></i>Visible To Departments
+                        </label>
+                        <div class="department-visibility">
+                            {{ form.visible_departments }}
+                        </div>
+                        <div class="form-text">
+                            Select which departments can see this session. Leave blank to default to your department.
+                        </div>
+                    </div>
+                    {% endif %}
+
                     <!-- Date and Time Selection -->
                     <div class="row mb-4">
                         <div class="col-md-6">
@@ -229,6 +243,32 @@
         </div>
     </div>
 </div>
+
+<style>
+    .department-visibility ul {
+        list-style: none;
+        padding-left: 0;
+        margin: 0;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 10px;
+    }
+
+    .department-visibility label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 10px;
+        border-radius: 10px;
+        border: 1px solid var(--nav-border);
+        background: var(--surface-muted);
+        font-weight: 500;
+    }
+
+    .department-visibility input[type=\"checkbox\"] {
+        margin: 0;
+    }
+</style>
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {

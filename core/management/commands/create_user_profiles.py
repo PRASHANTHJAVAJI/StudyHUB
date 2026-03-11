@@ -10,7 +10,7 @@ class Command(BaseCommand):
         
         created_count = 0
         for user in users_without_profiles:
-            UserProfile.objects.create(user=user, education_level=UserProfile.BACHELORS)
+            UserProfile.objects.create(user=user, education_level=UserProfile.BACHELORS, onboarding_complete=False)
             created_count += 1
             self.stdout.write(
                 self.style.SUCCESS(f'Created profile for user: {user.username}')

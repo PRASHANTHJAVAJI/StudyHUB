@@ -70,7 +70,7 @@
                         <select class="form-select" id="creatorTypeFilter" name="creator_type">
                             <option value="" {% if not creator_type or creator_type == '' %}selected{% endif %}>All Creators</option>
                             <option value="general" {% if creator_type == 'general' %}selected{% endif %}>General Users</option>
-                            <option value="leaders-admins" {% if creator_type == 'leaders-admins' %}selected{% endif %}>Leaders & Admins</option>
+                            <option value="leaders-admins" {% if creator_type == 'leaders-admins' %}selected{% endif %}>Leaders, Faculty & Admins</option>
                         </select>
                         {% if creator_type %}<small class="text-muted d-block mt-1">Filter: {{ creator_type }}</small>{% endif %}
                     </div>
@@ -270,10 +270,10 @@
 
 <style>
     .feed-header {
-        background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.1));
+        background: var(--surface-muted);
         padding: 2rem;
         border-radius: 16px;
-        border: 1px solid rgba(99, 102, 241, 0.2);
+        border: 1px solid var(--nav-border);
     }
     
     .stat-card {
@@ -289,13 +289,14 @@
     .stat-icon-sm {
         width: 40px;
         height: 40px;
-        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        background: var(--surface-muted);
+        border: 1px solid var(--nav-border);
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
         margin: 0 auto;
-        color: white;
+        color: var(--text-color);
         font-size: 1.2rem;
     }
     
@@ -310,8 +311,8 @@
         box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1) !important;
     }
     
-    .session-item.session-admin { background: linear-gradient(135deg, rgba(255, 193, 7, 0.12), rgba(255, 159, 64, 0.12)); border: 1px solid rgba(255, 193, 7, 0.35); }
-    .session-item.session-leader { background: linear-gradient(135deg, rgba(25, 135, 84, 0.10), rgba(40, 167, 69, 0.10)); border: 1px solid rgba(25, 135, 84, 0.35); }
+    .session-item.session-admin { background: rgba(255, 193, 7, 0.12); border: 1px solid rgba(255, 193, 7, 0.35); }
+    .session-item.session-leader { background: rgba(25, 135, 84, 0.10); border: 1px solid rgba(25, 135, 84, 0.35); }
     
     .session-item .card-title a:hover {
         color: var(--primary-color) !important;
@@ -331,7 +332,7 @@
     
     .location-info {
         padding: 0.5rem;
-        background: rgba(99, 102, 241, 0.05);
+        background: var(--primary-soft);
         border-radius: 8px;
         border-left: 3px solid var(--primary-color);
     }
@@ -347,7 +348,7 @@
     
     .form-control:focus, .form-select:focus {
         border-color: var(--primary-color);
-        box-shadow: 0 0 0 0.2rem rgba(99, 102, 241, 0.25);
+        box-shadow: 0 0 0 0.2rem var(--ring-color);
     }
     
     @media (max-width: 768px) {

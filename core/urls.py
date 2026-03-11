@@ -1,5 +1,5 @@
 from django.urls import path, include
-from .views import home, create_group, group_details, join_session, leave_session, signup, profile, change_password, logout_view, landing, edit_session, delete_session, session_ics, join_waitlist, custom_login, mark_attendance
+from .views import home, create_group, group_details, join_session, leave_session, signup, profile, change_password, logout_view, landing, edit_session, delete_session, session_ics, join_waitlist, custom_login, mark_attendance, complete_profile, department_options, admin_dashboard
 
 # REST Framework router - conditional in case rest_framework is not installed
 try:
@@ -21,7 +21,10 @@ urlpatterns = [
     path('feed/', home, name='home'),
     path('login/', custom_login, name='login'),
     path('signup/', signup, name='signup'),
+    path('complete-profile/', complete_profile, name='complete_profile'),
+    path('departments/<int:department_id>/options/', department_options, name='department_options'),
     path('profile/', profile, name='profile'),
+    path('admin-dashboard/', admin_dashboard, name='admin_dashboard'),
     path('change-password/', change_password, name='change_password'),
     path('logout/', logout_view, name='logout'),
     path('create/', create_group, name='create'),
@@ -38,4 +41,3 @@ urlpatterns = [
 # Add API endpoints if REST framework is available
 if REST_FRAMEWORK_AVAILABLE and router:
     urlpatterns.append(path('api/', include(router.urls)))  # API endpoints
-

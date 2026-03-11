@@ -17,6 +17,7 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
 from django.utils import timezone
+from django.utils.text import slugify
 from django.views.decorators.cache import never_cache
 from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth import login, update_session_auth_hash, logout, authenticate
@@ -25,10 +26,39 @@ from django.core.mail import send_mail
 from django.conf import settings
 import json
 import datetime
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 
-from .models import StudySession, SubjectTag, SessionMember, Message, WaitlistEntry, Attendance
-from .forms import StudySessionForm, CustomUserCreationForm
+from .models import StudySession, SubjectTag, SessionMember, Message, WaitlistEntry, Attendance, UserProfile, Major, Minor, Department
+from .forms import StudySessionForm, CustomUserCreationForm, ProfileSetupForm
+
+def profile_needs_setup(user):
+    try:
+        return not user.profile.onboarding_complete
+    except UserProfile.DoesNotExist:
+        return True
+
+def is_faculty_or_leader(user):
+    try:
+        profile = getattr(user, 'profile', None)
+        if not profile:
+            return False
+        return bool(getattr(profile, 'is_student_leader', False) or getattr(profile, 'is_faculty', False))
+    except Exception:
+        return False
+
+def session_visible_to_user(session, user):
+    if user.is_staff or user.is_superuser:
+        return True
+    profile = getattr(user, 'profile', None)
+    if not profile or not profile.department:
+        return False
+    if session.owner_id == user.id:
+        return True
+    visible_departments = list(getattr(session, 'visible_departments', []).all())
+    if visible_departments:
+        return profile.department in visible_departments
+    owner_department = getattr(getattr(session.owner, 'profile', None), 'department', None)
+    return bool(owner_department and owner_department == profile.department)
 
 # Serializers import - conditional in case rest_framework is not installed
 if REST_FRAMEWORK_AVAILABLE:
@@ -53,6 +83,8 @@ def custom_login(request):
             if user is not None:
                 login(request, user)
                 messages.success(request, f'Welcome back, {user.username}!')
+                if profile_needs_setup(user):
+                    return redirect('core:complete_profile')
                 next_url = request.GET.get('next', '/feed/')
                 return redirect(next_url)
             else:
@@ -76,6 +108,8 @@ def signup(request):
                 user = form.save()
                 login(request, user)
                 messages.success(request, 'Account created successfully!')
+                if profile_needs_setup(user):
+                    return redirect('core:complete_profile')
                 return redirect('core:home')
             except Exception as e:
                 messages.error(request, f'Error creating account: {str(e)}')
@@ -162,6 +196,108 @@ def profile(request):
 
 @login_required
 @never_cache
+def admin_dashboard(request):
+    """
+    Admin-only dashboard for general controls and subject list management.
+    """
+    if not (request.user.is_staff or request.user.is_superuser):
+        messages.error(request, 'You do not have permission to view the admin controls.')
+        return redirect('core:home')
+
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        if action == 'add_subject':
+            name = request.POST.get('name', '').strip()
+            education_level = request.POST.get('education_level', '').strip()
+            department = request.POST.get('department', '').strip()
+
+            if not name or not education_level:
+                messages.error(request, 'Please provide a subject name and education level.')
+            elif SubjectTag.objects.filter(name__iexact=name, education_level=education_level).exists():
+                messages.error(request, 'That subject already exists for the selected education level.')
+            else:
+                base_slug = slugify(name)
+                if education_level:
+                    base_slug = f"{base_slug}-{education_level}"
+                slug = base_slug
+                counter = 1
+                while SubjectTag.objects.filter(slug=slug).exists():
+                    counter += 1
+                    slug = f"{base_slug}-{counter}"
+                SubjectTag.objects.create(
+                    name=name,
+                    slug=slug,
+                    education_level=education_level,
+                    department=department
+                )
+                messages.success(request, f'Subject "{name}" added successfully.')
+        elif action == 'delete_subject':
+            subject_id = request.POST.get('subject_id')
+            subject = get_object_or_404(SubjectTag, id=subject_id)
+            subject_name = subject.name
+            subject.delete()
+            messages.success(request, f'Subject "{subject_name}" deleted.')
+
+        return redirect('core:admin_dashboard')
+
+    subjects = SubjectTag.objects.order_by('education_level', 'department', 'name')
+    department_names = list(Department.objects.order_by('name').values_list('name', flat=True))
+    subject_departments = list(
+        SubjectTag.objects.exclude(department='').order_by('department').values_list('department', flat=True).distinct()
+    )
+    department_options = sorted({*department_names, *subject_departments})
+
+    context = {
+        'subjects': subjects,
+        'education_levels': SubjectTag.EDUCATION_LEVEL_CHOICES,
+        'department_options': department_options,
+        'subject_count': subjects.count(),
+        'department_count': Department.objects.count(),
+        'major_count': Major.objects.count(),
+        'minor_count': Minor.objects.count(),
+    }
+    return render(request, 'core/admin_dashboard.html', context)
+
+
+@login_required
+@never_cache
+def complete_profile(request):
+    profile, _ = UserProfile.objects.get_or_create(user=request.user)
+
+    if profile.onboarding_complete:
+        return redirect('core:home')
+
+    if request.method == 'POST':
+        form = ProfileSetupForm(request.POST, instance=profile)
+        if form.is_valid():
+            updated_profile = form.save(commit=False)
+            updated_profile.onboarding_complete = True
+            updated_profile.save()
+            messages.success(request, 'Profile updated successfully!')
+            return redirect('core:home')
+    else:
+        form = ProfileSetupForm(instance=profile)
+
+    return render(request, 'core/profile_setup.html', {'form': form})
+
+
+@login_required
+def department_options(request, department_id):
+    majors = list(
+        Major.objects.filter(department_id=department_id)
+        .order_by('name')
+        .values('id', 'name')
+    )
+    minors = list(
+        Minor.objects.filter(department_id=department_id)
+        .order_by('name')
+        .values('id', 'name')
+    )
+    return JsonResponse({'majors': majors, 'minors': minors})
+
+
+@login_required
+@never_cache
 def change_password(request):
     """
     Change password page.
@@ -210,9 +346,11 @@ def home(request):
     """
     from datetime import timedelta
 
+    profile, _ = UserProfile.objects.get_or_create(user=request.user)
+
     qs = (
-        StudySession.objects.select_related('owner')
-        .prefetch_related('subjects', 'memberships__user')
+        StudySession.objects.select_related('owner', 'owner__profile')
+        .prefetch_related('subjects', 'memberships__user', 'visible_departments')
         .annotate(num_members=Count('memberships'))
         .order_by('start_time')
     )
@@ -220,6 +358,16 @@ def home(request):
     q = request.GET.get('q')
     if q:
         qs = qs.filter(Q(title__icontains=q) | Q(description__icontains=q) | Q(subjects__name__icontains=q))
+
+    # Department visibility filtering
+    user_department = profile.department
+    if user_department:
+        qs = qs.filter(
+            Q(visible_departments=user_department) |
+            Q(visible_departments__isnull=True, owner__profile__department=user_department)
+        ).distinct()
+    else:
+        qs = qs.none()
 
     # Date range and local time handling
     date_range = request.GET.get('date')
@@ -243,21 +391,23 @@ def home(request):
     # Creator type filter (general users vs leaders/admins)
     creator_type = request.GET.get('creator_type', '').strip()
     if creator_type == 'general':
-        # Filter to show only sessions created by general users (not admin, not leader)
-        # Exclude: staff, superusers, and users with is_student_leader=True
-        # Users without profiles are considered general (they don't have is_student_leader=True)
+        # Filter to show only sessions created by general users (not admin, not leader/faculty)
+        # Exclude: staff, superusers, and users with leader/faculty roles
+        # Users without profiles are considered general
         # Use select_related to ensure owner and profile are loaded efficiently
         qs = qs.select_related('owner', 'owner__profile').exclude(
             Q(owner__is_staff=True) | 
             Q(owner__is_superuser=True) | 
-            Q(owner__profile__is_student_leader=True)
+            Q(owner__profile__is_student_leader=True) |
+            Q(owner__profile__is_faculty=True)
         ).distinct()
     elif creator_type == 'leaders-admins':
-        # Filter to show only sessions created by admins or student leaders
+        # Filter to show only sessions created by admins, student leaders, or faculty
         qs = qs.select_related('owner', 'owner__profile').filter(
             Q(owner__is_staff=True) | 
             Q(owner__is_superuser=True) | 
-            Q(owner__profile__is_student_leader=True)
+            Q(owner__profile__is_student_leader=True) |
+            Q(owner__profile__is_faculty=True)
         ).distinct()
 
     # Compute next occurrence for recurring sessions and filter out past ones
@@ -325,11 +475,20 @@ def home(request):
         s.display_end_time = ne
         processed.append(s)
 
-    # Sort by next occurrence time
-    processed.sort(key=lambda x: getattr(x, 'display_start_time', x.start_time))
+    # Sort by department, then by next occurrence time
+    def _dept_sort_key(session):
+        visible_departments = list(session.visible_departments.all())
+        if visible_departments:
+            dept_name = sorted([d.name for d in visible_departments])[0]
+        else:
+            owner_dept = getattr(getattr(session.owner, 'profile', None), 'department', None)
+            dept_name = owner_dept.name if owner_dept else ''
+        return (dept_name.lower(), getattr(session, 'display_start_time', session.start_time))
+
+    processed.sort(key=_dept_sort_key)
 
     # Get user's education level and subjects list
-    user_education_level = request.user.profile.education_level
+    user_education_level = profile.education_level
     subjects = SubjectTag.objects.filter(education_level=user_education_level).order_by('name')
 
     # Stats - count sessions happening today (based on user's local time)
@@ -370,6 +529,14 @@ def edit_session(request, pk):
                 room_number = form.cleaned_data.get('room_number', '')
                 session.location_text = f"{building_name} - Room {room_number}".strip()
             session.save()
+
+            selected_departments = form.cleaned_data.get('visible_departments')
+            if selected_departments is not None and selected_departments:
+                session.visible_departments.set(selected_departments)
+            else:
+                profile_department = getattr(getattr(request.user, 'profile', None), 'department', None)
+                if profile_department:
+                    session.visible_departments.set([profile_department])
             
             # Handle subject selection
             subject_id = form.cleaned_data.get('subjects')
@@ -432,6 +599,14 @@ def create_group(request):
                 session.location_text = f"{building_name} - Room {room_number}".strip()
             
             session.save()
+
+            selected_departments = form.cleaned_data.get('visible_departments')
+            if selected_departments is not None and selected_departments:
+                session.visible_departments.set(selected_departments)
+            else:
+                profile_department = getattr(getattr(request.user, 'profile', None), 'department', None)
+                if profile_department:
+                    session.visible_departments.set([profile_department])
             
             # Handle single subject selection
             subject_id = form.cleaned_data.get('subjects')
@@ -471,13 +646,16 @@ def group_details(request, pk):
     Detail page: show one session with members and messages.
     """
     session = get_object_or_404(
-        StudySession.objects.select_related('owner')
-        .prefetch_related('subjects', 'memberships__user', 'messages__user', 'attendance__user')
+        StudySession.objects.select_related('owner', 'owner__profile')
+        .prefetch_related('subjects', 'memberships__user', 'messages__user', 'attendance__user', 'visible_departments')
         .annotate(num_members=Count('memberships')),
         pk=pk
     )
     is_member = False
     if request.user.is_authenticated:
+        if not session_visible_to_user(session, request.user):
+            messages.error(request, 'This session is not available for your department.')
+            return redirect('core:home')
         is_member = SessionMember.objects.filter(session=session, user=request.user).exists()
 
     # Check if user can mark attendance (leader/admin and session has started)
@@ -486,7 +664,7 @@ def group_details(request, pk):
         is_leader_or_admin = (
             request.user.is_staff or 
             request.user.is_superuser or 
-            (hasattr(request.user, 'profile') and request.user.profile.is_student_leader)
+            is_faculty_or_leader(request.user)
         )
         session_started = timezone.now() >= session.start_time
         can_mark_attendance = is_leader_or_admin and session_started and request.user == session.owner
@@ -529,6 +707,10 @@ def join_session(request, pk):
     Join a session via HTML (POST). Redirects back to detail.
     """
     session = get_object_or_404(StudySession, pk=pk)
+
+    if not session_visible_to_user(session, request.user):
+        messages.error(request, 'This session is not available for your department.')
+        return redirect('core:home')
 
     if SessionMember.objects.filter(session=session, user=request.user).exists():
         messages.info(request, 'You already joined this session.')
@@ -611,6 +793,9 @@ def leave_session(request, pk):
 @never_cache
 def join_waitlist(request, pk):
     session = get_object_or_404(StudySession, pk=pk)
+    if not session_visible_to_user(session, request.user):
+        messages.error(request, 'This session is not available for your department.')
+        return redirect('core:home')
     # Only allow waitlist if full
     current_count = SessionMember.objects.filter(session=session).count()
     if current_count < session.capacity:
@@ -621,8 +806,12 @@ def join_waitlist(request, pk):
     return redirect('core:detail', pk=pk)
 
 
+@login_required
 def session_ics(request, pk):
     session = get_object_or_404(StudySession, pk=pk)
+    if not session_visible_to_user(session, request.user):
+        messages.error(request, 'This session is not available for your department.')
+        return redirect('core:home')
     dtstamp = datetime.datetime.now().strftime('%Y%m%dT%H%M%SZ')
     dtstart = session.start_time.strftime('%Y%m%dT%H%M%SZ')
     dtend = session.end_time.strftime('%Y%m%dT%H%M%SZ') if session.end_time else ''
@@ -688,7 +877,7 @@ def mark_attendance(request, pk):
     is_leader_or_admin = (
         request.user.is_staff or 
         request.user.is_superuser or 
-        (hasattr(request.user, 'profile') and request.user.profile.is_student_leader)
+        is_faculty_or_leader(request.user)
     )
     
     if not is_leader_or_admin or request.user != session.owner:

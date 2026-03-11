@@ -3,51 +3,222 @@
 {% block title %}Log In - StudyHub{% endblock %}
 
 {% block content %}
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-6">
-            <div class="card shadow">
-                <div class="card-header bg-primary text-white">
-                    <h3 class="mb-0">Log In</h3>
+<div class="auth-screen">
+    <div class="auth-shell">
+        <div class="auth-hero">
+            <div class="auth-badge">Welcome Back</div>
+            <h1 class="auth-title">Log In to StudyHub</h1>
+            <p class="auth-subtitle">
+                Pick up where you left off and stay connected with your study groups.
+            </p>
+            <div class="auth-features">
+                <div class="auth-feature">
+                    <span>Track upcoming sessions</span>
                 </div>
-                <div class="card-body">
-                    <form method="post">
-                        {% csrf_token %}
-                        
-                        {% if form.errors %}
-                            <div class="alert alert-danger">
-                                <h5>Please correct the following errors:</h5>
-                                {{ form.errors }}
-                            </div>
-                        {% endif %}
-                        
-                        <div class="mb-3">
-                            <label for="id_username" class="form-label">Username</label>
-                            {{ form.username }}
-                            {% if form.username.errors %}
-                                <div class="text-danger">{{ form.username.errors }}</div>
-                            {% endif %}
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label for="id_password" class="form-label">Password</label>
-                            {{ form.password }}
-                            {% if form.password.errors %}
-                                <div class="text-danger">{{ form.password.errors }}</div>
-                            {% endif %}
-                        </div>
-                        
-                        <div class="d-grid">
-                            <button type="submit" class="btn btn-primary btn-lg">Log In</button>
-                        </div>
-                    </form>
-                    
-                    <div class="text-center mt-4">
-                        <p class="mb-0">Don't have an account? <a href="{% url 'core:signup' %}" class="text-decoration-none">Sign Up</a></p>
+                <div class="auth-feature">
+                    <span>Stay synced with your peers</span>
+                </div>
+                <div class="auth-feature">
+                    <span>Access personalized recommendations</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="auth-card">
+            <div class="auth-card-header">
+                <h2>Sign in</h2>
+                <p>Use your StudyHub credentials.</p>
+            </div>
+
+            <form method="post" class="auth-form">
+                {% csrf_token %}
+
+                {% if form.errors %}
+                    <div class="alert alert-danger">
+                        <h5>Please correct the following errors:</h5>
+                        {{ form.errors }}
                     </div>
+                {% endif %}
+
+                <div class="mb-3">
+                    <label for="id_username" class="form-label">Username</label>
+                    {{ form.username }}
+                    {% if form.username.errors %}
+                        <div class="text-danger">{{ form.username.errors }}</div>
+                    {% endif %}
                 </div>
+
+                <div class="mb-3">
+                    <label for="id_password" class="form-label">Password</label>
+                    {{ form.password }}
+                    {% if form.password.errors %}
+                        <div class="text-danger">{{ form.password.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-lg w-100">Log In</button>
+            </form>
+
+            <div class="auth-footer">
+                <p>Don't have an account? <a href="{% url 'core:signup' %}">Sign Up</a></p>
             </div>
         </div>
     </div>
 </div>
+
+<style>
+    .navbar,
+    .footer {
+        display: none;
+    }
+
+    .main-content {
+        background: transparent;
+        box-shadow: none;
+        padding: 0;
+        max-width: none;
+        margin: 0;
+        animation: none;
+    }
+
+    .container-fluid {
+        padding-top: 0;
+    }
+
+    .auth-screen {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        background: var(--bg-gradient);
+    }
+
+    .auth-shell {
+        width: 100%;
+        max-width: 1080px;
+        display: grid;
+        gap: 28px;
+        align-items: center;
+        padding: 32px;
+        min-height: 100vh;
+    }
+
+    .auth-hero {
+        color: white;
+        padding: 30px;
+        border-radius: 22px;
+        background: var(--panel-color);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        box-shadow: 0 20px 45px rgba(15, 23, 42, 0.35);
+        backdrop-filter: blur(8px);
+    }
+
+    .auth-badge {
+        display: inline-flex;
+        padding: 6px 12px;
+        border-radius: 999px;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        background: rgba(255, 255, 255, 0.18);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        margin-bottom: 16px;
+    }
+
+    .auth-title {
+        font-size: clamp(2rem, 3vw, 2.6rem);
+        font-weight: 700;
+        margin-bottom: 12px;
+    }
+
+    .auth-subtitle {
+        font-size: 1.05rem;
+        opacity: 0.9;
+        margin-bottom: 20px;
+    }
+
+    .auth-features {
+        display: grid;
+        gap: 10px;
+    }
+
+    .auth-feature {
+        padding: 10px 14px;
+        border-radius: 12px;
+        background: rgba(15, 23, 42, 0.3);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
+    .auth-card {
+        background: var(--surface-strong);
+        border-radius: 22px;
+        padding: 30px;
+        box-shadow: var(--card-shadow);
+        border: 1px solid var(--nav-border);
+    }
+
+    .auth-card-header h2 {
+        font-weight: 700;
+        margin-bottom: 6px;
+        color: var(--text-color);
+    }
+
+    .auth-card-header p {
+        color: var(--text-muted);
+        margin-bottom: 22px;
+    }
+
+    .auth-form .form-control {
+        border-radius: 12px;
+        border: 2px solid var(--border-color);
+        padding: 12px 14px;
+    }
+
+    .auth-form .form-control:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 0.2rem var(--ring-color);
+    }
+
+    .auth-footer {
+        text-align: center;
+        margin-top: 18px;
+        color: var(--text-muted);
+    }
+
+    .auth-footer a {
+        color: var(--primary-color);
+        font-weight: 600;
+        text-decoration: none;
+    }
+
+    @media (min-width: 992px) {
+        .auth-shell {
+            grid-template-columns: 1.1fr 1fr;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .auth-screen {
+            padding: 0;
+        }
+
+        .auth-hero,
+        .auth-card {
+            padding: 22px;
+        }
+    }
+
+    @media (max-height: 820px) {
+        .auth-screen {
+            padding: 0;
+        }
+
+        .auth-hero,
+        .auth-card {
+            padding: 20px;
+        }
+    }
+
+</style>
 {% endblock %}

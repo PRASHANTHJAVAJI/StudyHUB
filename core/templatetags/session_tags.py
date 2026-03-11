@@ -18,7 +18,12 @@ def is_admin(user):
 def is_leader(user):
     try:
         profile = getattr(user, 'profile', None)
-        return bool(profile and getattr(profile, 'is_student_leader', False))
+        return bool(
+            profile and (
+                getattr(profile, 'is_student_leader', False) or
+                getattr(profile, 'is_faculty', False)
+            )
+        )
     except Exception:
         return False
 
