@@ -41,11 +41,12 @@
             </div>
             <div class="theme-toggle mt-3">
                 <div class="d-inline-flex align-items-center gap-2">
-                    <span class="text-muted">Theme</span>
+                    <i class="fas fa-moon text-muted small"></i>
                     <div class="form-check form-switch mb-0">
                         <input class="form-check-input" type="checkbox" id="themeToggle">
-                        <label class="form-check-label" for="themeToggle">Dark Mode</label>
+                        <label class="form-check-label small" for="themeToggle">Light Mode</label>
                     </div>
+                    <i class="fas fa-sun text-warning small"></i>
                 </div>
             </div>
         </div>
@@ -91,10 +92,13 @@
         <div class="row g-4">
             <div class="col-lg-6">
                 <div class="card border-0 shadow-sm h-100">
-                    <div class="card-header bg-transparent border-0 pb-0">
+                    <div class="card-header bg-transparent border-0 pb-0 d-flex justify-content-between align-items-center">
                         <h5 class="card-title mb-0">
-                            <i class="fas fa-user-edit me-2 text-primary"></i>Personal Information
+                            <i class="fas fa-user-edit me-2 text-primary"></i>About You
                         </h5>
+                        <a href="{% url 'core:edit_profile' %}" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-pen me-1"></i>Edit
+                        </a>
                     </div>
                     <div class="card-body">
                         <div class="info-item mb-3">
@@ -128,12 +132,15 @@
                             </div>
                         </div>
                         
+                        {% if not user.is_staff and not user.is_superuser %}
+                        {% if not user.profile.is_faculty %}
                         <div class="info-item mb-3">
                             <label class="form-label fw-semibold text-muted">Education Level</label>
                             <div class="d-flex align-items-center">
                                 <span class="fw-semibold">{{ user.profile.get_education_level_display }}</span>
                             </div>
                         </div>
+                        {% endif %}
 
                         <div class="info-item mb-3">
                             <label class="form-label fw-semibold text-muted">Department</label>
@@ -142,6 +149,7 @@
                             </div>
                         </div>
 
+                        {% if not user.profile.is_faculty %}
                         <div class="info-item mb-3">
                             <label class="form-label fw-semibold text-muted">Major</label>
                             <div class="d-flex align-items-center">
@@ -155,6 +163,8 @@
                                 <span class="fw-semibold">{{ user.profile.minor|default:"Not set" }}</span>
                             </div>
                         </div>
+                        {% endif %}
+                        {% endif %}
                         
                         <div class="info-item">
                             <label class="form-label fw-semibold text-muted">Member Since</label>
@@ -170,7 +180,7 @@
                 <div class="card border-0 shadow-sm h-100">
                     <div class="card-header bg-transparent border-0 pb-0">
                         <h5 class="card-title mb-0">
-                            <i class="fas fa-shield-alt me-2 text-primary"></i>Account Security
+                            <i class="fas fa-shield-alt me-2 text-primary"></i>Security
                         </h5>
                     </div>
                     <div class="card-body">
@@ -192,7 +202,7 @@
         <div class="card border-0 shadow-sm mt-4">
             <div class="card-header bg-transparent border-0">
                 <h5 class="card-title mb-0">
-                    <i class="fas fa-history me-2 text-primary"></i>Recent Activity
+                    <i class="fas fa-history me-2 text-primary"></i>Your Journey
                 </h5>
             </div>
             <div class="card-body">
@@ -200,7 +210,7 @@
                     {% for item in activity %}
                     <div class="activity-item">
                         <div class="activity-icon">
-                            <i class="fas fa-calendar-plus text-success"></i>
+                            <i class="fas {{ item.icon|default:'fa-calendar-check' }}"></i>
                         </div>
                         <div class="activity-content">
                             <h6 class="fw-semibold mb-1">{{ item.title }}</h6>
@@ -217,14 +227,14 @@
         <div class="text-center mt-5">
             <div class="d-flex gap-3 justify-content-center flex-wrap">
                 <a href="{% url 'core:create' %}" class="btn btn-primary btn-lg">
-                    <i class="fas fa-plus me-2"></i>Create Study Session
+                    <i class="fas fa-plus me-2"></i>Start a Session
                 </a>
                 <a href="{% url 'core:home' %}" class="btn btn-outline-primary btn-lg">
-                    <i class="fas fa-home me-2"></i>Go to Feed
+                    <i class="fas fa-home me-2"></i>Browse Sessions
                 </a>
-                <button class="btn btn-outline-secondary btn-lg" id="exportDataBtn">
-                    <i class="fas fa-download me-2"></i>Export Data
-                </button>
+                <a href="{% url 'core:export_profile_data' %}" class="btn btn-outline-secondary btn-lg">
+                    <i class="fas fa-download me-2"></i>Download My Data
+                </a>
             </div>
         </div>
     </div>
@@ -380,15 +390,19 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Theme toggle
+        // Theme toggle — dark is default, light is opt-in
         const themeToggle = document.getElementById('themeToggle');
         if (themeToggle) {
-            const currentTheme = document.documentElement.getAttribute('data-theme') || 'mixed';
-            themeToggle.checked = currentTheme === 'dark';
+            const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+            themeToggle.checked = currentTheme === 'light';
             themeToggle.addEventListener('change', () => {
-                const nextTheme = themeToggle.checked ? 'dark' : 'mixed';
-                document.documentElement.setAttribute('data-theme', nextTheme);
-                localStorage.setItem('studyhub_theme', nextTheme);
+                if (themeToggle.checked) {
+                    document.documentElement.setAttribute('data-theme', 'light');
+                    localStorage.setItem('studyhub_theme', 'light');
+                } else {
+                    document.documentElement.removeAttribute('data-theme');
+                    localStorage.setItem('studyhub_theme', 'dark');
+                }
             });
         }
         // Remove JS stat simulation and activity simulation
@@ -403,22 +417,13 @@
                 this.style.transform = 'translateY(0) scale(1)';
             });
         });
-        // Edit buttons functionality
-        const editButtons = document.querySelectorAll('[id$="Btn"]');
-        editButtons.forEach(btn => {
-            btn.addEventListener('click', function() {
-                const action = this.id.replace('Btn', '');
-                showToast(`Edit ${action} functionality coming soon!`, 'info');
+        // Avatar edit button (placeholder)
+        const editAvatarBtn = document.getElementById('editAvatarBtn');
+        if (editAvatarBtn) {
+            editAvatarBtn.addEventListener('click', function() {
+                showToast('Avatar customization coming soon!', 'info');
             });
-        });
-        // Avatar edit functionality
-        document.getElementById('editAvatarBtn').addEventListener('click', function() {
-            showToast('Avatar upload functionality coming soon!', 'info');
-        });
-        // Export data functionality
-        document.getElementById('exportDataBtn').addEventListener('click', function() {
-            showToast('Data export functionality coming soon!', 'info');
-        });
+        }
     });
 </script>
 {% endblock %}

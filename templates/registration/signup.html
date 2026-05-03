@@ -1,470 +1,565 @@
 {% extends 'core/base.html' %}
 {% load static %}
-
 {% block title %}Sign Up - StudyHub{% endblock %}
 
 {% block content %}
-<div class="auth-screen">
-    <div class="auth-shell">
-        <div class="auth-hero">
-            <div class="auth-badge">Join StudyHub</div>
-            <h1 class="auth-title">Create Your Account</h1>
-            <p class="auth-subtitle">
-                Build your study network and start collaborating right away.
-            </p>
-            <div class="auth-features">
-                <div class="auth-feature"><span>Find study partners fast</span></div>
-                <div class="auth-feature"><span>Organize sessions with ease</span></div>
-                <div class="auth-feature"><span>Track your progress</span></div>
+<div class="auth-page">
+    <div class="auth-split">
+
+        <!-- Left: Brand panel (sticky on desktop) -->
+        <div class="auth-brand">
+            <div class="auth-brand-inner">
+                <div class="auth-logo">
+                    <i class="fas fa-graduation-cap"></i>
+                    <span>StudyHub</span>
+                </div>
+                <h1 class="auth-headline">Join the<br>crew. 🎓</h1>
+                <p class="auth-tagline">Your study network starts here. Get set up in under a minute.</p>
+                <ul class="auth-perks">
+                    <li><i class="fas fa-check-circle"></i> Find study partners fast</li>
+                    <li><i class="fas fa-check-circle"></i> Organize sessions with ease</li>
+                    <li><i class="fas fa-check-circle"></i> Track your academic progress</li>
+                </ul>
             </div>
+            <div class="auth-blob auth-blob-1"></div>
+            <div class="auth-blob auth-blob-2"></div>
         </div>
 
-        <div class="auth-card">
-            <div class="auth-card-header">
-                <h2>Sign up</h2>
-                <p>Start with the basics and finish setup after logging in.</p>
-            </div>
+        <!-- Right: Form panel (scrollable) -->
+        <div class="auth-form-panel">
+            <div class="auth-form-card">
 
-            <form method="post" id="signupForm" class="auth-form needs-validation" novalidate>
-                {% csrf_token %}
-
-                <!-- Username Field -->
-                <div class="mb-4">
-                    <label for="{{ form.username.id_for_label }}" class="form-label fw-semibold">
-                        Username
-                    </label>
-                    {{ form.username }}
-                    {% if form.username.errors %}
-                        <div class="invalid-feedback d-block">
-                            {% for error in form.username.errors %}
-                                <i class="fas fa-exclamation-circle me-1"></i>{{ error }}
-                            {% endfor %}
-                        </div>
-                    {% endif %}
-                    <div class="form-text">
-                        Choose a unique username for your profile
-                    </div>
+                <div class="auth-form-logo-mobile">
+                    <i class="fas fa-graduation-cap"></i> StudyHub
                 </div>
 
-                <!-- Email Field -->
-                <div class="mb-4">
-                    <label for="{{ form.email.id_for_label }}" class="form-label fw-semibold">
-                        Email Address
-                    </label>
-                    {{ form.email }}
-                    {% if form.email.errors %}
-                        <div class="invalid-feedback d-block">
-                            {% for error in form.email.errors %}
-                                <i class="fas fa-exclamation-circle me-1"></i>{{ error }}
-                            {% endfor %}
-                        </div>
-                    {% endif %}
-                    <div class="form-text">
-                        We'll never share your email with anyone else
-                    </div>
-                </div>
+                <h2 class="auth-form-title">Create your account</h2>
+                <p class="auth-form-sub">Quick setup — finish your profile after you're in.</p>
 
-                <!-- Password Field -->
-                <div class="mb-4">
-                    <label for="{{ form.password1.id_for_label }}" class="form-label fw-semibold">
-                        Password
-                    </label>
-                    <div class="input-group">
-                        {{ form.password1 }}
-                        <button class="btn btn-outline-secondary" type="button" id="togglePassword1">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                    </div>
-                    {% if form.password1.errors %}
-                        <div class="invalid-feedback d-block">
-                            {% for error in form.password1.errors %}
-                                <i class="fas fa-exclamation-circle me-1"></i>{{ error }}
-                            {% endfor %}
-                        </div>
-                    {% endif %}
-                    <div class="password-strength mt-2" id="passwordStrength">
-                        <div class="progress" style="height: 6px;">
-                            <div class="progress-bar" role="progressbar" style="width: 0%"></div>
-                        </div>
-                        <small class="text-muted mt-1 d-block">Password strength: <span id="strengthText">Weak</span></small>
-                    </div>
-                </div>
+                <form method="post" id="signupForm" class="auth-form" novalidate>
+                    {% csrf_token %}
 
-                <!-- Confirm Password Field -->
-                <div class="mb-4">
-                    <label for="{{ form.password2.id_for_label }}" class="form-label fw-semibold">
-                        Confirm Password
-                    </label>
-                    <div class="input-group">
-                        {{ form.password2 }}
-                        <button class="btn btn-outline-secondary" type="button" id="togglePassword2">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                    </div>
-                    {% if form.password2.errors %}
-                        <div class="invalid-feedback d-block">
-                            {% for error in form.password2.errors %}
-                                <i class="fas fa-exclamation-circle me-1"></i>{{ error }}
-                            {% endfor %}
+                    <!-- Username -->
+                    <div class="auth-field">
+                        <label for="{{ form.username.id_for_label }}">Username</label>
+                        <div class="auth-input-wrap">
+                            <i class="fas fa-user auth-input-icon"></i>
+                            {{ form.username }}
                         </div>
-                    {% endif %}
-                    <div class="password-match mt-2" id="passwordMatch">
-                        <i class="fas fa-check-circle text-success me-1" style="display: none;"></i>
-                        <i class="fas fa-times-circle text-danger me-1" style="display: none;"></i>
-                        <small class="text-muted">Passwords must match</small>
+                        {% if form.username.errors %}
+                        <div class="auth-field-error">
+                            <i class="fas fa-exclamation-circle me-1"></i>{{ form.username.errors.0 }}
+                        </div>
+                        {% endif %}
+                        <div class="auth-field-hint">Choose a unique username for your profile</div>
                     </div>
-                </div>
 
-                <!-- Terms and Conditions -->
-                <div class="mb-4">
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="termsCheck" required>
-                        <label class="form-check-label" for="termsCheck">
-                            I agree to the <a href="#" class="text-primary">Terms and Conditions</a> and
-                            <a href="#" class="text-primary">Privacy Policy</a>
+                    <!-- Email -->
+                    <div class="auth-field">
+                        <label for="{{ form.email.id_for_label }}">Email Address</label>
+                        <div class="auth-input-wrap">
+                            <i class="fas fa-envelope auth-input-icon"></i>
+                            {{ form.email }}
+                        </div>
+                        {% if form.email.errors %}
+                        <div class="auth-field-error">
+                            <i class="fas fa-exclamation-circle me-1"></i>{{ form.email.errors.0 }}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Password -->
+                    <div class="auth-field">
+                        <label for="{{ form.password1.id_for_label }}">Password</label>
+                        <div class="auth-input-wrap">
+                            <i class="fas fa-lock auth-input-icon"></i>
+                            {{ form.password1 }}
+                            <button type="button" class="auth-eye-btn" id="togglePwd1" aria-label="Toggle password">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                        {% if form.password1.errors %}
+                        <div class="auth-field-error">
+                            <i class="fas fa-exclamation-circle me-1"></i>{{ form.password1.errors.0 }}
+                        </div>
+                        {% endif %}
+                        <!-- Strength bar -->
+                        <div class="pwd-strength mt-2" id="pwdStrength">
+                            <div class="pwd-strength-bar">
+                                <div class="pwd-strength-fill" id="pwdFill"></div>
+                            </div>
+                            <span class="pwd-strength-label" id="pwdLabel">Enter a password</span>
+                        </div>
+                    </div>
+
+                    <!-- Confirm Password -->
+                    <div class="auth-field">
+                        <label for="{{ form.password2.id_for_label }}">Confirm Password</label>
+                        <div class="auth-input-wrap">
+                            <i class="fas fa-lock auth-input-icon"></i>
+                            {{ form.password2 }}
+                            <button type="button" class="auth-eye-btn" id="togglePwd2" aria-label="Toggle confirm password">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                        {% if form.password2.errors %}
+                        <div class="auth-field-error">
+                            <i class="fas fa-exclamation-circle me-1"></i>{{ form.password2.errors.0 }}
+                        </div>
+                        {% endif %}
+                        <div class="auth-field-hint" id="matchHint">Passwords must match</div>
+                    </div>
+
+                    <!-- Terms -->
+                    <div class="auth-terms">
+                        <label class="auth-checkbox-label">
+                            <input type="checkbox" id="termsCheck" class="auth-checkbox" required>
+                            <span>I agree to the <a href="#">Terms</a> and <a href="#">Privacy Policy</a></span>
                         </label>
                     </div>
-                </div>
 
-                <!-- Submit Button -->
-                <button type="submit" class="btn btn-primary btn-lg w-100" id="submitBtn">
-                    <i class="fas fa-rocket me-2"></i>Create Account
-                </button>
-            </form>
+                    <button type="submit" class="auth-submit-btn" id="submitBtn">
+                        Let's Go <i class="fas fa-arrow-right ms-2"></i>
+                    </button>
+                </form>
 
-            <div class="auth-footer">
-                <p>Already have an account? <a href="{% url 'core:login' %}">Sign In</a></p>
+                <p class="auth-switch">
+                    Already in? <a href="{% url 'core:login' %}">Sign in</a>
+                </p>
             </div>
         </div>
+
     </div>
 </div>
 
 <style>
-    .navbar,
-    .footer {
-        display: none;
-    }
-
+    .navbar, .footer { display: none !important; }
+    .container-fluid { padding: 0 !important; }
     .main-content {
-        background: transparent;
-        box-shadow: none;
-        padding: 0;
-        max-width: none;
-        margin: 0;
-        animation: none;
+        padding: 0 !important;
+        margin: 0 !important;
+        max-width: none !important;
+        background: transparent !important;
+        box-shadow: none !important;
+        border: none !important;
+        border-radius: 0 !important;
+        animation: none !important;
     }
+    body { background: var(--bg-gradient); }
 
-    .container-fluid {
-        padding-top: 0;
-    }
+    .auth-page { min-height: 100vh; display: flex; }
 
-    .auth-screen {
+    .auth-split {
+        display: flex;
+        width: 100%;
         min-height: 100vh;
+    }
+
+    /* ── Left brand panel ─────────────────────── */
+    .auth-brand {
+        flex: 0 0 44%;
+        background: linear-gradient(145deg, #070b14 0%, #0a1628 35%, #0b2040 65%, #0d2d55 100%);
         display: flex;
         align-items: center;
         justify-content: center;
-        padding: 0;
-        background: var(--bg-gradient);
+        padding: 60px 52px;
+        position: sticky;
+        top: 0;
+        height: 100vh;
+        overflow: hidden;
+        align-self: flex-start;
     }
 
-    .auth-shell {
-        width: 100%;
-        max-width: 1080px;
-        display: grid;
-        gap: 28px;
+    .auth-brand::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background-image: radial-gradient(rgba(56,189,248,0.12) 1px, transparent 1px);
+        background-size: 28px 28px;
+        pointer-events: none;
+    }
+
+    .auth-blob {
+        position: absolute;
+        border-radius: 50%;
+        pointer-events: none;
+    }
+    .auth-blob-1 {
+        width: 480px; height: 480px;
+        top: -160px; right: -140px;
+        background: radial-gradient(circle, rgba(56,189,248,0.18) 0%, transparent 70%);
+    }
+    .auth-blob-2 {
+        width: 320px; height: 320px;
+        bottom: -100px; left: -80px;
+        background: radial-gradient(circle, rgba(14,165,233,0.14) 0%, transparent 70%);
+    }
+
+    .auth-brand-inner {
+        color: #e6edf3;
+        max-width: 360px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .auth-logo {
+        display: flex;
         align-items: center;
-        padding: 32px;
-        min-height: 100vh;
+        gap: 12px;
+        margin-bottom: 52px;
+    }
+    .auth-logo i { font-size: 2rem; color: #38bdf8; }
+    .auth-logo span { font-size: 1.4rem; font-weight: 700; letter-spacing: -0.02em; }
+
+    .auth-headline {
+        font-size: clamp(2.2rem, 3.5vw, 3rem);
+        font-weight: 800;
+        line-height: 1.15;
+        margin-bottom: 18px;
+        letter-spacing: -0.03em;
     }
 
-    .auth-hero {
-        color: white;
-        padding: 30px;
-        border-radius: 22px;
-        background: var(--panel-color);
-        border: 1px solid rgba(255, 255, 255, 0.15);
-        box-shadow: 0 20px 45px rgba(15, 23, 42, 0.35);
-        backdrop-filter: blur(8px);
+    .auth-tagline {
+        font-size: 1rem;
+        color: rgba(230,237,243,0.65);
+        margin-bottom: 40px;
+        line-height: 1.65;
     }
 
-    .auth-badge {
-        display: inline-flex;
-        padding: 6px 12px;
-        border-radius: 999px;
-        font-size: 0.85rem;
-        text-transform: uppercase;
-        letter-spacing: 0.04em;
-        background: rgba(255, 255, 255, 0.18);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        margin-bottom: 16px;
+    .auth-perks {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
     }
-
-    .auth-title {
-        font-size: clamp(2rem, 3vw, 2.6rem);
-        font-weight: 700;
-        margin-bottom: 12px;
+    .auth-perks li {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-size: 0.92rem;
+        color: rgba(230,237,243,0.80);
     }
+    .auth-perks li i { color: #34d399; font-size: 0.95rem; flex-shrink: 0; }
 
-    .auth-subtitle {
-        font-size: 1.05rem;
-        opacity: 0.9;
-        margin-bottom: 20px;
-    }
-
-    .auth-features {
-        display: grid;
-        gap: 10px;
-    }
-
-    .auth-feature {
-        padding: 10px 14px;
-        border-radius: 12px;
-        background: rgba(15, 23, 42, 0.3);
-        border: 1px solid rgba(255, 255, 255, 0.12);
-    }
-
-    .auth-card {
+    /* ── Right form panel ─────────────────────── */
+    .auth-form-panel {
+        flex: 1;
+        display: flex;
+        align-items: flex-start;
+        justify-content: center;
+        padding: 56px 52px;
         background: var(--surface-strong);
-        border-radius: 22px;
-        padding: 30px;
-        box-shadow: var(--card-shadow);
-        border: 1px solid var(--nav-border);
+        overflow-y: auto;
     }
 
-    .auth-card-header h2 {
+    .auth-form-card {
+        width: 100%;
+        max-width: 400px;
+    }
+
+    .auth-form-logo-mobile {
+        display: none;
+        font-size: 1.25rem;
         font-weight: 700;
-        margin-bottom: 6px;
+        color: var(--primary-color);
+        margin-bottom: 28px;
+        align-items: center;
+        gap: 8px;
+    }
+    .auth-form-logo-mobile i { font-size: 1.4rem; }
+
+    .auth-form-title {
+        font-size: 1.8rem;
+        font-weight: 800;
         color: var(--text-color);
+        margin-bottom: 6px;
+        letter-spacing: -0.02em;
     }
 
-    .auth-card-header p {
+    .auth-form-sub {
         color: var(--text-muted);
-        margin-bottom: 22px;
+        font-size: 0.9rem;
+        margin-bottom: 28px;
     }
 
+    /* Fields */
+    .auth-field { margin-bottom: 18px; }
+
+    .auth-field label {
+        display: block;
+        font-size: 0.78rem;
+        font-weight: 700;
+        color: var(--text-muted);
+        margin-bottom: 7px;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+    }
+
+    .auth-input-wrap { position: relative; }
+
+    .auth-input-icon {
+        position: absolute;
+        left: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--text-muted);
+        font-size: 0.85rem;
+        pointer-events: none;
+        z-index: 1;
+    }
+
+    /* Override Django's form-control to match auth-input style */
     .auth-form .form-control {
-        border-radius: 12px;
-        border: 2px solid var(--border-color);
-        padding: 12px 14px;
+        display: block;
+        width: 100%;
+        padding: 11px 42px 11px 40px;
+        border-radius: 10px;
+        border: 1.5px solid var(--border-color);
+        background: var(--surface-muted) !important;
+        color: var(--text-color) !important;
+        font-size: 0.95rem;
+        transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+        outline: none;
+        -webkit-appearance: none;
+        box-shadow: none;
     }
-
+    .auth-form .form-control::placeholder { color: var(--text-muted); opacity: 0.6; }
     .auth-form .form-control:focus {
         border-color: var(--primary-color);
-        box-shadow: 0 0 0 0.2rem var(--ring-color);
+        box-shadow: 0 0 0 3px var(--ring-color);
+        background: var(--surface-strong) !important;
+    }
+    .auth-form .form-control.is-invalid { border-color: var(--danger-color); }
+
+    .auth-eye-btn {
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        color: var(--text-muted);
+        cursor: pointer;
+        padding: 4px 6px;
+        font-size: 0.85rem;
+        line-height: 1;
+        z-index: 1;
+    }
+    .auth-eye-btn:hover { color: var(--text-color); }
+
+    .auth-field-error {
+        font-size: 0.78rem;
+        color: var(--danger-color);
+        margin-top: 5px;
+    }
+    .auth-field-hint {
+        font-size: 0.78rem;
+        color: var(--text-muted);
+        margin-top: 5px;
     }
 
-    .password-strength .progress-bar {
-        transition: all 0.3s ease;
+    /* Password strength */
+    .pwd-strength { display: flex; align-items: center; gap: 10px; }
+    .pwd-strength-bar {
+        flex: 1;
+        height: 5px;
+        border-radius: 99px;
+        background: var(--border-color);
+        overflow: hidden;
+    }
+    .pwd-strength-fill {
+        height: 100%;
+        border-radius: 99px;
+        width: 0%;
+        transition: width 0.3s, background 0.3s;
+        background: var(--danger-color);
+    }
+    .pwd-strength-label {
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        white-space: nowrap;
+        min-width: 60px;
     }
 
-    .btn-lg {
-        padding: 12px 24px;
-        font-size: 1.1rem;
-        font-weight: 600;
+    /* Terms */
+    .auth-terms { margin-bottom: 20px; }
+    .auth-checkbox-label {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        cursor: pointer;
     }
+    .auth-checkbox {
+        width: 16px;
+        height: 16px;
+        margin-top: 2px;
+        accent-color: var(--primary-color);
+        flex-shrink: 0;
+        cursor: pointer;
+    }
+    .auth-checkbox-label a {
+        color: var(--primary-color);
+        font-weight: 500;
+        text-decoration: none;
+    }
+    .auth-checkbox-label a:hover { text-decoration: underline; }
 
-    .auth-footer {
+    /* Submit */
+    .auth-submit-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        padding: 13px 20px;
+        background: var(--primary-color);
+        color: #0d1117;
+        border: none;
+        border-radius: 10px;
+        font-size: 0.95rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: opacity 0.15s, transform 0.15s, box-shadow 0.15s;
+        box-shadow: 0 4px 14px rgba(56,189,248,0.30);
+    }
+    .auth-submit-btn:hover {
+        opacity: 0.90;
+        transform: translateY(-1px);
+        box-shadow: 0 6px 20px rgba(56,189,248,0.40);
+    }
+    .auth-submit-btn:active { transform: translateY(0); }
+
+    .auth-switch {
         text-align: center;
-        margin-top: 18px;
+        margin-top: 22px;
+        font-size: 0.875rem;
         color: var(--text-muted);
     }
-
-    .auth-footer a {
+    .auth-switch a {
         color: var(--primary-color);
         font-weight: 600;
         text-decoration: none;
     }
+    .auth-switch a:hover { text-decoration: underline; }
 
-    @media (min-width: 992px) {
-        .auth-shell {
-            grid-template-columns: 1.1fr 1fr;
+    /* ── Mobile ───────────────────────────────── */
+    @media (max-width: 900px) {
+        .auth-split { flex-direction: column; }
+        .auth-brand {
+            flex: none;
+            position: static;
+            height: auto;
+            padding: 36px 28px 32px;
         }
+        .auth-brand-inner { max-width: 100%; }
+        .auth-headline { font-size: 2rem; }
+        .auth-perks { display: none; }
+        .auth-tagline { margin-bottom: 0; }
+        .auth-form-panel { flex: none; padding: 36px 28px 56px; align-items: flex-start; }
+        .auth-form-logo-mobile { display: flex; }
     }
-
-    @media (max-width: 768px) {
-        .auth-screen {
-            padding: 0;
-        }
-
-        .auth-hero,
-        .auth-card {
-            padding: 22px;
-        }
-    }
-
-    @media (max-height: 820px) {
-        .auth-screen {
-            padding: 0;
-        }
-
-        .auth-hero,
-        .auth-card {
-            padding: 20px;
-        }
-    }
-
 </style>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const form = document.getElementById('signupForm');
-        const password1 = document.getElementById('{{ form.password1.id_for_label }}');
-        const password2 = document.getElementById('{{ form.password2.id_for_label }}');
-        const togglePassword1 = document.getElementById('togglePassword1');
-        const togglePassword2 = document.getElementById('togglePassword2');
-        const passwordStrength = document.getElementById('passwordStrength');
-        const passwordMatch = document.getElementById('passwordMatch');
-        const submitBtn = document.getElementById('submitBtn');
-        const termsCheck = document.getElementById('termsCheck');
+document.addEventListener('DOMContentLoaded', function () {
+    const pwd1 = document.getElementById('{{ form.password1.id_for_label }}');
+    const pwd2 = document.getElementById('{{ form.password2.id_for_label }}');
+    const fill = document.getElementById('pwdFill');
+    const label = document.getElementById('pwdLabel');
+    const matchHint = document.getElementById('matchHint');
+    const submitBtn = document.getElementById('submitBtn');
+    const termsCheck = document.getElementById('termsCheck');
 
-        // Toggle password visibility
-        function togglePasswordVisibility(inputField, toggleBtn) {
-            if (inputField.type === 'password') {
-                inputField.type = 'text';
-                toggleBtn.innerHTML = '<i class="fas fa-eye-slash"></i>';
-            } else {
-                inputField.type = 'password';
-                toggleBtn.innerHTML = '<i class="fas fa-eye"></i>';
-            }
+    // ── Toggle visibility ──────────────────────
+    function togglePwd(inputEl, btn) {
+        const icon = btn.querySelector('i');
+        if (inputEl.type === 'password') {
+            inputEl.type = 'text';
+            icon.className = 'fas fa-eye-slash';
+        } else {
+            inputEl.type = 'password';
+            icon.className = 'fas fa-eye';
         }
+    }
+    document.getElementById('togglePwd1').addEventListener('click', () => togglePwd(pwd1, document.getElementById('togglePwd1')));
+    document.getElementById('togglePwd2').addEventListener('click', () => togglePwd(pwd2, document.getElementById('togglePwd2')));
 
-        togglePassword1.addEventListener('click', () => togglePasswordVisibility(password1, togglePassword1));
-        togglePassword2.addEventListener('click', () => togglePasswordVisibility(password2, togglePassword2));
+    // ── Password strength ──────────────────────
+    const levels = [
+        { max: 20, color: '#ef4444', text: 'Very weak' },
+        { max: 40, color: '#f97316', text: 'Weak' },
+        { max: 60, color: '#eab308', text: 'Fair' },
+        { max: 80, color: '#3b82f6', text: 'Good' },
+        { max: 100, color: '#22c55e', text: 'Strong' },
+    ];
 
-        // Password strength checker
-        function checkPasswordStrength(password) {
-            let strength = 0;
-            const feedback = [];
+    pwd1.addEventListener('input', function () {
+        const p = this.value;
+        let score = 0;
+        if (p.length >= 8) score += 20;
+        if (/[a-z]/.test(p)) score += 20;
+        if (/[A-Z]/.test(p)) score += 20;
+        if (/[0-9]/.test(p)) score += 20;
+        if (/[^A-Za-z0-9]/.test(p)) score += 20;
 
-            if (password.length >= 8) strength += 1;
-            else feedback.push('At least 8 characters');
+        fill.style.width = score + '%';
+        const lvl = levels.find(l => score <= l.max) || levels[4];
+        fill.style.background = lvl.color;
+        label.textContent = p ? lvl.text : 'Enter a password';
+        label.style.color = p ? lvl.color : '';
 
-            if (/[a-z]/.test(password)) strength += 1;
-            else feedback.push('Lowercase letter');
-
-            if (/[A-Z]/.test(password)) strength += 1;
-            else feedback.push('Uppercase letter');
-
-            if (/[0-9]/.test(password)) strength += 1;
-            else feedback.push('Number');
-
-            if (/[^A-Za-z0-9]/.test(password)) strength += 1;
-            else feedback.push('Special character');
-
-            return { strength, feedback };
-        }
-
-        // Update password strength display
-        function updatePasswordStrength() {
-            const password = password1.value;
-            const result = checkPasswordStrength(password);
-            const progressBar = passwordStrength.querySelector('.progress-bar');
-            const strengthText = passwordStrength.querySelector('#strengthText');
-
-            const percentage = (result.strength / 5) * 100;
-            progressBar.style.width = percentage + '%';
-
-            if (percentage <= 20) {
-                progressBar.className = 'progress-bar bg-danger';
-                strengthText.textContent = 'Very Weak';
-            } else if (percentage <= 40) {
-                progressBar.className = 'progress-bar bg-warning';
-                strengthText.textContent = 'Weak';
-            } else if (percentage <= 60) {
-                progressBar.className = 'progress-bar bg-info';
-                strengthText.textContent = 'Fair';
-            } else if (percentage <= 80) {
-                progressBar.className = 'progress-bar bg-primary';
-                strengthText.textContent = 'Good';
-            } else {
-                progressBar.className = 'progress-bar bg-success';
-                strengthText.textContent = 'Strong';
-            }
-        }
-
-        // Check password match
-        function checkPasswordMatch() {
-            const match = password1.value === password2.value;
-            const checkIcon = passwordMatch.querySelector('.fa-check-circle');
-            const timesIcon = passwordMatch.querySelector('.fa-times-circle');
-            const text = passwordMatch.querySelector('small');
-
-            if (password1.value && password2.value) {
-                if (match) {
-                    checkIcon.style.display = 'inline';
-                    timesIcon.style.display = 'none';
-                    text.textContent = 'Passwords match!';
-                    text.className = 'text-success';
-                } else {
-                    checkIcon.style.display = 'none';
-                    timesIcon.style.display = 'inline';
-                    text.textContent = 'Passwords do not match';
-                    text.className = 'text-danger';
-                }
-            } else {
-                checkIcon.style.display = 'none';
-                timesIcon.style.display = 'none';
-                text.textContent = 'Passwords must match';
-                text.className = 'text-muted';
-            }
-        }
-
-        // Event listeners
-        password1.addEventListener('input', updatePasswordStrength);
-        password1.addEventListener('input', checkPasswordMatch);
-        password2.addEventListener('input', checkPasswordMatch);
-
-        // Form validation
-        form.addEventListener('submit', function(e) {
-            if (!termsCheck.checked) {
-                e.preventDefault();
-                showToast('Please accept the terms and conditions', 'warning');
-                termsCheck.focus();
-                return;
-            }
-
-            if (password1.value !== password2.value) {
-                e.preventDefault();
-                showToast('Passwords do not match', 'danger');
-                password2.focus();
-                return;
-            }
-
-            // Show loading state
-            submitBtn.innerHTML = '<span class="loading-spinner me-2"></span>Creating Account...';
-            submitBtn.disabled = true;
-        });
-
-        // Real-time validation
-        const inputs = form.querySelectorAll('input, select');
-        inputs.forEach(input => {
-            input.addEventListener('blur', function() {
-                if (this.hasAttribute('required') && !this.value.trim()) {
-                    this.classList.add('is-invalid');
-                } else {
-                    this.classList.remove('is-invalid');
-                }
-            });
-
-            input.addEventListener('input', function() {
-                if (this.classList.contains('is-invalid')) {
-                    this.classList.remove('is-invalid');
-                }
-            });
-        });
+        checkMatch();
     });
+
+    // ── Password match ─────────────────────────
+    function checkMatch() {
+        if (!pwd1.value || !pwd2.value) {
+            matchHint.textContent = 'Passwords must match';
+            matchHint.style.color = '';
+            return;
+        }
+        if (pwd1.value === pwd2.value) {
+            matchHint.textContent = '✓ Passwords match';
+            matchHint.style.color = '#22c55e';
+        } else {
+            matchHint.textContent = '✗ Passwords do not match';
+            matchHint.style.color = '#ef4444';
+        }
+    }
+    pwd2.addEventListener('input', checkMatch);
+
+    // ── Submit validation ──────────────────────
+    document.getElementById('signupForm').addEventListener('submit', function (e) {
+        if (!termsCheck.checked) {
+            e.preventDefault();
+            showToast('Please accept the terms and conditions', 'warning');
+            return;
+        }
+        if (pwd1.value !== pwd2.value) {
+            e.preventDefault();
+            showToast('Passwords do not match', 'danger');
+            pwd2.focus();
+            return;
+        }
+        submitBtn.innerHTML = '<span class="loading-spinner me-2"></span>Setting you up...';
+        submitBtn.disabled = true;
+    });
+});
 </script>
 
 {% if form.username.errors or form.email.errors %}
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        {% if form.username.errors %}
-            showToast("{{ form.username.errors.0|escapejs }}", 'warning');
-        {% endif %}
-        {% if form.email.errors %}
-            showToast("{{ form.email.errors.0|escapejs }}", 'warning');
-        {% endif %}
-    });
+document.addEventListener('DOMContentLoaded', function () {
+    {% if form.username.errors %}
+        showToast("{{ form.username.errors.0|escapejs }}", 'warning');
+    {% endif %}
+    {% if form.email.errors %}
+        showToast("{{ form.email.errors.0|escapejs }}", 'warning');
+    {% endif %}
+});
 </script>
 {% endif %}
 {% endblock %}

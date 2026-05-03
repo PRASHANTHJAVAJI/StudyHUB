@@ -1,5 +1,5 @@
 from django.urls import path, include
-from .views import home, create_group, group_details, join_session, leave_session, signup, profile, change_password, logout_view, landing, edit_session, delete_session, session_ics, join_waitlist, custom_login, mark_attendance, complete_profile, department_options, admin_dashboard
+from .views import home, create_group, group_details, join_session, leave_session, signup, profile, change_password, logout_view, landing, edit_session, delete_session, session_ics, join_waitlist, custom_login, mark_attendance, complete_profile, department_options, admin_dashboard, export_profile_data, edit_profile
 
 # REST Framework router - conditional in case rest_framework is not installed
 try:
@@ -35,7 +35,9 @@ urlpatterns = [
     path('session/<int:pk>/leave/', leave_session, name='leave'),
     path('session/<int:pk>/waitlist/', join_waitlist, name='waitlist'),
     path('session/<int:pk>/calendar/', session_ics, name='calendar'),  # ICS download
-    path('session/<int:pk>/attendance/', mark_attendance, name='attendance'),  # Mark attendance
+    path('session/<int:pk>/attendance/', mark_attendance, name='attendance'),
+    path('profile/export/', export_profile_data, name='export_profile_data'),
+    path('profile/edit/', edit_profile, name='edit_profile'),
 ]
 
 # Add API endpoints if REST framework is available

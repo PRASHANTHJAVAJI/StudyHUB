@@ -50,9 +50,19 @@ class OnboardingMiddleware:
 
         if request.user.is_authenticated and not path.startswith(exempt_prefixes):
             try:
-                if not request.user.profile.onboarding_complete:
+                profile = request.user.profile
+                # Admins skip onboarding entirely — auto-complete it
+                if request.user.is_staff or request.user.is_superuser:
+                    if not profile.onboarding_complete:
+                        profile.onboarding_complete = True
+                        profile.save(update_fields=['onboarding_complete'])
+                elif not profile.onboarding_complete:
                     return redirect('core:complete_profile')
             except UserProfile.DoesNotExist:
-                return redirect('core:complete_profile')
+                # Auto-complete for admins, redirect others
+                if request.user.is_staff or request.user.is_superuser:
+                    UserProfile.objects.create(user=request.user, onboarding_complete=True)
+                else:
+                    return redirect('core:complete_profile')
 
         return self.get_response(request)

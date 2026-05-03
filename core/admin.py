@@ -31,9 +31,35 @@ class SubjectTagAdmin(admin.ModelAdmin):
 
 @admin.register(UserProfile)
 class UserProfileAdmin(admin.ModelAdmin):
-    list_display = ('user', 'education_level', 'department', 'major', 'minor', 'onboarding_complete', 'is_student_leader', 'is_faculty', 'created_at')
-    list_filter = ('education_level', 'department', 'major', 'minor', 'onboarding_complete', 'is_student_leader', 'is_faculty', 'created_at')
+    list_display = ('user', 'role_label', 'education_level', 'department', 'major', 'minor', 'onboarding_complete', 'is_student_leader', 'is_faculty', 'created_at')
+    list_filter = ('education_level', 'onboarding_complete', 'is_student_leader', 'is_faculty')
     search_fields = ('user__username', 'user__email', 'department__name', 'major__name', 'minor__name')
+
+    # Fields shown for non-admin users (full academic profile)
+    STUDENT_FIELDS = ('user', 'education_level', 'department', 'major', 'minor', 'onboarding_complete', 'is_student_leader', 'is_faculty')
+    # Fields shown for faculty (department only)
+    FACULTY_FIELDS = ('user', 'department', 'onboarding_complete', 'is_student_leader', 'is_faculty')
+    # Fields shown for site admins (no academic info)
+    ADMIN_FIELDS = ('user', 'onboarding_complete', 'is_student_leader', 'is_faculty')
+
+    def get_fields(self, request, obj=None):
+        if obj is None:
+            return self.STUDENT_FIELDS
+        if obj.user.is_staff or obj.user.is_superuser:
+            return self.ADMIN_FIELDS
+        if obj.is_faculty:
+            return self.FACULTY_FIELDS
+        return self.STUDENT_FIELDS
+
+    @admin.display(description='Role')
+    def role_label(self, obj):
+        if obj.user.is_staff or obj.user.is_superuser:
+            return 'Admin'
+        if obj.is_faculty:
+            return 'Faculty'
+        if obj.is_student_leader:
+            return 'Student Leader'
+        return 'Student'
 
 
 @admin.register(Department)

@@ -9,20 +9,20 @@
 {% csrf_token %}
 
 <!-- Feed Header -->
-<div class="feed-header mb-5">
+<div class="feed-header mb-3">
     <div class="row align-items-center">
         <div class="col-lg-8">
-            <h1 class="h2 fw-bold text-primary mb-3">
-                <i class="fas fa-home me-2"></i>Study Feed
+            <h1 class="h2 fw-bold text-primary mb-2">
+                Hey, {{ user.username }}! 👋
             </h1>
-            <p class="lead text-muted mb-0">
-                Welcome back, <span class="fw-semibold text-primary">{{ user.username }}</span>! 
-                Discover study sessions in <span class="badge bg-primary fs-6">{{ user_education_level }}</span>
+            <p class="text-muted mb-0">
+                Here's what's happening in
+                <span class="badge bg-primary">{{ user_education_level }}</span> right now.
             </p>
         </div>
-        <div class="col-lg-4 text-lg-end">
+        <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
             <a href="{% url 'core:create' %}" class="btn btn-primary btn-lg">
-                <i class="fas fa-plus me-2"></i>Create Session
+                <i class="fas fa-plus me-2"></i>Start a Session
             </a>
         </div>
     </div>
@@ -31,241 +31,139 @@
 <!-- Filters and Search -->
 <form method="get" id="filtersForm">
     <input type="hidden" name="local_datetime" id="localDatetimeInput">
-    <div class="filters-section mb-4">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body p-4">
-                <div class="row g-3 align-items-end">
-                    <div class="col-12 col-sm-6 col-md-3">
-                        <label class="form-label fw-semibold">
-                            <i class="fas fa-search me-2 text-primary"></i>Search Sessions
-                        </label>
-                        <input type="text" class="form-control" id="searchInput" name="q" placeholder="Search by title, subject, or description..." value="{{ q }}">
-                    </div>
-                    <div class="col-12 col-sm-6 col-md-2">
-                        <label class="form-label fw-semibold">
-                            <i class="fas fa-filter me-2 text-primary"></i>Session Type
-                        </label>
-                        <select class="form-select" id="sessionTypeFilter" name="session_type">
-                            <option value="" {% if not session_type %}selected{% endif %}>All Types</option>
-                            <option value="virtual" {% if session_type == 'virtual' %}selected{% endif %}>Virtual</option>
-                            <option value="in-person" {% if session_type == 'in-person' %}selected{% endif %}>In-Person</option>
-                        </select>
-                    </div>
-                    <div class="col-12 col-sm-6 col-md-2">
-                        <label class="form-label fw-semibold">
-                            <i class="fas fa-calendar me-2 text-primary"></i>Date Range
-                        </label>
-                        <select class="form-select" id="dateFilter" name="date">
-                            <option value="" {% if not date_range %}selected{% endif %}>All Dates</option>
-                            <option value="today" {% if date_range == 'today' %}selected{% endif %}>Today</option>
-                            <option value="tomorrow" {% if date_range == 'tomorrow' %}selected{% endif %}>Tomorrow</option>
-                            <option value="week" {% if date_range == 'week' %}selected{% endif %}>This Week</option>
-                            <option value="month" {% if date_range == 'month' %}selected{% endif %}>This Month</option>
-                        </select>
-                    </div>
-                    <div class="col-12 col-sm-6 col-md-3">
-                        <label class="form-label fw-semibold">
-                            <i class="fas fa-user-tag me-2 text-primary"></i>Creator Type
-                        </label>
-                        <select class="form-select" id="creatorTypeFilter" name="creator_type">
-                            <option value="" {% if not creator_type or creator_type == '' %}selected{% endif %}>All Creators</option>
-                            <option value="general" {% if creator_type == 'general' %}selected{% endif %}>General Users</option>
-                            <option value="leaders-admins" {% if creator_type == 'leaders-admins' %}selected{% endif %}>Leaders, Faculty & Admins</option>
-                        </select>
-                        {% if creator_type %}<small class="text-muted d-block mt-1">Filter: {{ creator_type }}</small>{% endif %}
-                    </div>
-                    <div class="col-12 col-sm-6 col-md-2">
-                        <button class="btn btn-outline-secondary w-100" id="clearFiltersBtn" type="button">
-                            <i class="fas fa-times me-1"></i>Clear
-                        </button>
-                    </div>
-                </div>
+    <div class="filters-section mb-2">
+        <div class="d-flex flex-wrap gap-2 align-items-center">
+            <div class="filter-input-wrap flex-grow-1">
+                <i class="fas fa-search filter-icon text-muted"></i>
+                <input type="text" class="form-control filter-input" id="searchInput" name="q" placeholder="Search sessions..." value="{{ q }}">
             </div>
+            <select class="form-select filter-select" id="sessionTypeFilter" name="session_type">
+                <option value="" {% if not session_type %}selected{% endif %}>All Types</option>
+                <option value="virtual" {% if session_type == 'virtual' %}selected{% endif %}>Virtual</option>
+                <option value="in-person" {% if session_type == 'in-person' %}selected{% endif %}>In-Person</option>
+            </select>
+            <select class="form-select filter-select" id="dateFilter" name="date">
+                <option value="" {% if not date_range %}selected{% endif %}>All Dates</option>
+                <option value="today" {% if date_range == 'today' %}selected{% endif %}>Today</option>
+                <option value="tomorrow" {% if date_range == 'tomorrow' %}selected{% endif %}>Tomorrow</option>
+                <option value="week" {% if date_range == 'week' %}selected{% endif %}>This Week</option>
+                <option value="month" {% if date_range == 'month' %}selected{% endif %}>This Month</option>
+            </select>
+            <button class="btn btn-outline-secondary filter-clear" id="clearFiltersBtn" type="button">
+                <i class="fas fa-times me-1"></i>Reset
+            </button>
         </div>
     </div>
 </form>
 
 <!-- Quick Stats -->
-<div class="row g-3 mb-4">
+<div class="row g-2 mb-2">
     <div class="col-md-6">
         <div class="stat-card card border-0 shadow-sm text-center">
-            <div class="card-body p-3">
-                <div class="stat-icon-sm mb-2">
+            <div class="card-body py-2 px-3">
+                <div class="d-flex align-items-center justify-content-center gap-2">
                     <i class="fas fa-calendar-check text-success"></i>
+                    <h5 class="fw-bold text-success mb-0" id="totalSessions">{{ sessions|length }}</h5>
+                    <small class="text-muted">Sessions Available</small>
                 </div>
-                <h5 class="fw-bold text-success mb-1" id="totalSessions">{{ sessions|length }}</h5>
-                <small class="text-muted">Total Sessions</small>
             </div>
         </div>
     </div>
     <div class="col-md-6">
         <div class="stat-card card border-0 shadow-sm text-center">
-            <div class="card-body p-3">
-                <div class="stat-icon-sm mb-2">
+            <div class="card-body py-2 px-3">
+                <div class="d-flex align-items-center justify-content-center gap-2">
                     <i class="fas fa-clock text-info"></i>
+                    <h5 class="fw-bold text-info mb-0" id="upcomingSessions">{{ upcoming_sessions_count }}</h5>
+                    <small class="text-muted">Happening Today</small>
                 </div>
-                <h5 class="fw-bold text-info mb-1" id="upcomingSessions">{{ upcoming_sessions_count }}</h5>
-                <small class="text-muted">Upcoming Today</small>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Sessions Grid -->
+<!-- Session Tabs -->
 <div class="sessions-container">
-    {% if sessions %}
-        <div class="row g-4" id="sessionsGrid">
-            {% for session in sessions %}
-            <div class="col-lg-6 col-xl-4 session-card" 
-                 data-title="{{ session.title|lower }}" 
-                 data-type="{% if session.is_virtual %}virtual{% else %}in-person{% endif %}"
-                 data-date="{{ session.start_time|date:'Y-m-d' }}">
-                <div class="card h-100 border-0 shadow-sm session-item {% if session.owner|is_admin %}session-admin{% elif session.owner|is_leader %}session-leader{% endif %}">
-                    <div class="card-header bg-transparent border-0 pb-0">
-                        <div class="d-flex justify-content-between align-items-start mb-2">
-                            <span class="badge {% if session.is_virtual %}bg-info{% else %}bg-warning{% endif %} fs-6">
-                                <i class="fas fa-{% if session.is_virtual %}video{% else %}map-marker-alt{% endif %} me-1"></i>
-                                {% if session.is_virtual %}Virtual{% else %}In-Person{% endif %}
-                            </span>
-                            <div class="dropdown">
-                                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                                    <i class="fas fa-ellipsis-v"></i>
-                                </button>
-                                <ul class="dropdown-menu">
-                                    <li><a class="dropdown-item" href="{% url 'core:detail' session.pk %}">
-                                        <i class="fas fa-eye me-2"></i>View Details
-                                    </a></li>
-                                    {% if user == session.owner %}
-                                    <li><a class="dropdown-item" href="{% url 'core:edit' session.pk %}">
-                                        <i class="fas fa-edit me-2"></i>Edit Session
-                                    </a></li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item text-danger" href="{% url 'core:delete' session.pk %}">
-                                        <i class="fas fa-trash me-2"></i>Delete Session
-                                    </a></li>
-                                    {% endif %}
-                                </ul>
-                            </div>
-                        </div>
-                        <h5 class="card-title fw-bold mb-2">
-                            <a href="{% url 'core:detail' session.pk %}" class="text-decoration-none text-dark">
-                                {{ session.title }}
-                            </a>
-                        </h5>
-                    </div>
-                    
-                    <div class="card-body">
-                        <p class="card-text text-muted mb-3">
-                            {{ session.description|truncatewords:25 }}
-                        </p>
-                        
-                        <div class="session-meta mb-3">
-                            <div class="row g-2">
-                                <div class="col-6">
-                                    <div class="meta-item">
-                                        <i class="fas fa-calendar text-primary me-2"></i>
-                                        <small class="text-muted">{{ session.start_time|date:"M j, Y" }}</small>
-                                    </div>
-                                </div>
-                                <div class="col-6">
-                                    <div class="meta-item">
-                                        <i class="fas fa-clock text-primary me-2"></i>
-                                        <small class="text-muted">{{ session.start_time|time:"g:i A" }}</small>
-                                    </div>
-                                </div>
-                                <div class="col-6">
-                                    <div class="meta-item">
-                                        <i class="fas fa-user text-primary me-2"></i>
-                                        <small class="text-muted">{{ session.owner.username }}</small>
-                                    </div>
-                                </div>
-                                <div class="col-6">
-                                    <div class="meta-item">
-                                        <i class="fas fa-users text-primary me-2"></i>
-                                        <small class="text-muted">{{ session.memberships.count }}/{{ session.capacity|default:"∞" }}</small>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="session-subjects mb-3">
-                            {% for subject in session.subjects.all %}
-                            <span class="badge bg-light text-dark me-1 mb-1">
-                                <i class="fas fa-book me-1"></i>{{ subject.name }}
-                            </span>
-                            {% endfor %}
-                        </div>
-                        
-                        {% if session.is_virtual %}
-                            <div class="location-info mb-3">
-                                <i class="fas fa-link text-success me-2"></i>
-                                <small class="text-success">Virtual Meeting Link Available</small>
-                            </div>
-                        {% else %}
-                            <div class="location-info mb-3">
-                                <i class="fas fa-map-marker-alt text-warning me-2"></i>
-                                <small class="text-muted">{{ session.location_text|default:"Location TBD" }}</small>
-                            </div>
-                        {% endif %}
-                    </div>
-                    
-                    <div class="card-footer bg-transparent border-0 pt-0">
-                        <div class="d-flex gap-2">
-                            {% if session|is_member:user %}
-                                <button class="btn btn-outline-danger btn-sm flex-fill" 
-                                        onclick="leaveSession({{ session.pk }})">
-                                    <i class="fas fa-sign-out-alt me-1"></i>Leave
-                                </button>
-                            {% else %}
-                                {% if session.memberships.count >= session.capacity %}
-                                    <a href="{% url 'core:waitlist' session.pk %}" class="btn btn-warning btn-sm flex-fill">
-                                        <i class="fas fa-hourglass-half me-1"></i>Waitlist
-                                    </a>
-                                {% else %}
-                                    <button class="btn btn-success btn-sm flex-fill" 
-                                            onclick="joinSession({{ session.pk }})">
-                                        <i class="fas fa-sign-in-alt me-1"></i>Join
-                                    </button>
-                                {% endif %}
-                            {% endif %}
-                            <a href="{% url 'core:detail' session.pk %}" class="btn btn-outline-primary btn-sm">
-                                <i class="fas fa-info-circle"></i>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
+
+    <!-- Tab Navigation -->
+    <div class="session-tabs mb-3">
+        <button class="session-tab active" data-tab="general">
+            <i class="fas fa-users me-2"></i>General
+            <span class="tab-count">{{ sessions_general|length }}</span>
+        </button>
+        <button class="session-tab" data-tab="study">
+            <i class="fas fa-book-open me-2"></i>Study
+            <span class="tab-count">{{ sessions_study|length }}</span>
+        </button>
+        <button class="session-tab" data-tab="conference">
+            <i class="fas fa-chalkboard-teacher me-2"></i>Conferences
+            <span class="tab-count">{{ sessions_conference|length }}</span>
+        </button>
+    </div>
+
+    <!-- Tab Panels -->
+    <div class="tab-panel active" id="tab-general">
+        {% if sessions_general %}
+        <div class="row g-4">
+            {% for session in sessions_general %}
+            {% include "core/_session_card.html" %}
             {% endfor %}
         </div>
-        
-        <!-- Session Count Info -->
-        <div class="text-center mt-5">
-            <div class="text-muted">
-                <small>
-                    Showing {{ sessions|length }} session{{ sessions|length|pluralize }}
-                </small>
-            </div>
+        {% else %}
+        <div class="tab-empty">
+            <i class="fas fa-users fa-2x mb-3 text-muted"></i>
+            <p class="text-muted mb-3">Nothing here yet — be the first!</p>
+            <a href="{% url 'core:create' %}" class="btn btn-outline-primary btn-sm">
+                <i class="fas fa-plus me-1"></i>Start one
+            </a>
         </div>
-    {% else %}
-        <!-- Empty State -->
-        <div class="text-center py-5">
-            <div class="empty-state">
-                <i class="fas fa-calendar-times fa-4x text-muted mb-4"></i>
-                <h3 class="text-muted mb-3">No Study Sessions Available</h3>
-                <p class="text-muted mb-4">
-                    It looks like there are no study sessions available for your education level at the moment.
-                </p>
-                <div class="d-flex gap-3 justify-content-center flex-wrap">
-                    <a href="{% url 'core:create' %}" class="btn btn-primary btn-lg">
-                        <i class="fas fa-plus me-2"></i>Create First Session
-                    </a>
-                    <button class="btn btn-outline-primary btn-lg" id="refreshBtn">
-                        <i class="fas fa-sync-alt me-2"></i>Refresh
-                    </button>
+        {% endif %}
+    </div>
+
+    <div class="tab-panel" id="tab-study">
+        {% if sessions_study %}
+        <div class="row g-4">
+            {% for session in sessions_study %}
+            {% include "core/_session_card.html" %}
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="tab-empty">
+            <i class="fas fa-book-open fa-2x mb-3 text-muted"></i>
+            <p class="text-muted mb-0">No study sessions yet — jump in and start one!</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="tab-panel" id="tab-conference">
+        <!-- All-departments toggle — only for conferences -->
+        <div class="conf-scope-bar mb-3">
+            <span class="conf-scope-label">
+                <i class="fas fa-building me-1"></i>
+                {% if show_all %}Showing all departments{% else %}{{ user_department.name|default:"Your department" }} only{% endif %}
+            </span>
+            <div class="dept-toggle-wrap">
+                <span class="dept-toggle-label"><i class="fas fa-globe me-1"></i>All Departments</span>
+                <div class="form-check form-switch mb-0">
+                    <input class="form-check-input" type="checkbox" id="showAllToggle" {% if show_all %}checked{% endif %}>
                 </div>
             </div>
         </div>
-    {% endif %}
+
+        {% if sessions_conference %}
+        <div class="row g-4">
+            {% for session in sessions_conference %}
+            {% include "core/_session_card.html" %}
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="tab-empty">
+            <i class="fas fa-chalkboard-teacher fa-2x mb-3 text-muted"></i>
+            <p class="text-muted mb-0">No conferences scheduled yet.</p>
+        </div>
+        {% endif %}
+    </div>
+
 </div>
 
 <style>
@@ -286,18 +184,83 @@
         box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1) !important;
     }
     
-    .stat-icon-sm {
-        width: 40px;
-        height: 40px;
-        background: var(--surface-muted);
-        border: 1px solid var(--nav-border);
-        border-radius: 50%;
+    /* Flat inline filter bar */
+    .filter-input-wrap {
+        position: relative;
+        min-width: 200px;
+    }
+    .filter-icon {
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 0.8rem;
+        pointer-events: none;
+        z-index: 1;
+    }
+    .filter-input {
+        padding-left: 32px !important;
+        height: 38px;
+        font-size: 0.875rem;
+    }
+    .filter-select {
+        width: auto;
+        min-width: 130px;
+        height: 38px;
+        font-size: 0.875rem;
+        padding-top: 0;
+        padding-bottom: 0;
+    }
+    .filter-clear {
+        height: 38px;
+        font-size: 0.875rem;
+        white-space: nowrap;
+    }
+
+    /* Conference scope bar */
+    .conf-scope-bar {
         display: flex;
         align-items: center;
-        justify-content: center;
-        margin: 0 auto;
-        color: var(--text-color);
-        font-size: 1.2rem;
+        justify-content: space-between;
+        padding: 0.5rem 0.75rem;
+        background: var(--surface-muted);
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+    .conf-scope-label {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        font-weight: 500;
+    }
+    .dept-toggle-wrap {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    .dept-toggle-label {
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: var(--text-muted);
+        white-space: nowrap;
+    }
+    #showAllToggle:checked ~ * { color: var(--primary-color); }
+    .conf-scope-bar:has(#showAllToggle:checked) {
+        border-color: var(--primary-color);
+        background: var(--primary-soft);
+    }
+    .conf-scope-bar:has(#showAllToggle:checked) .conf-scope-label,
+    .conf-scope-bar:has(#showAllToggle:checked) .dept-toggle-label {
+        color: var(--primary-color);
+    }
+
+    /* Compact stat cards */
+    .stat-card .card-body {
+        min-height: unset;
+    }
+    .stat-card {
+        border-radius: 10px !important;
     }
     
     .session-item {
@@ -341,11 +304,80 @@
         max-width: 500px;
         margin: 0 auto;
     }
-    
-    .filters-section .card {
-        border-radius: 16px;
+
+    /* Tab navigation */
+    .session-tabs {
+        display: flex;
+        gap: 0;
+        border-bottom: 2px solid var(--border-color);
     }
-    
+
+    .session-tab {
+        flex: 1;
+        background: none;
+        border: none;
+        border-bottom: 3px solid transparent;
+        margin-bottom: -2px;
+        padding: 0.75rem 0;
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: var(--text-muted);
+        cursor: pointer;
+        transition: color 0.2s, border-color 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.4rem;
+        white-space: nowrap;
+    }
+
+    .session-tab:hover {
+        color: var(--text-color);
+    }
+
+    .session-tab.active {
+        color: var(--primary-color);
+        border-bottom-color: var(--primary-color);
+    }
+
+    .tab-count {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--surface-muted);
+        border: 1px solid var(--border-color);
+        color: var(--text-muted);
+        font-size: 0.75rem;
+        font-weight: 700;
+        border-radius: 20px;
+        min-width: 22px;
+        height: 22px;
+        padding: 0 6px;
+        margin-left: 4px;
+        transition: background 0.2s, color 0.2s;
+    }
+
+    .session-tab.active .tab-count {
+        background: var(--primary-soft);
+        color: var(--primary-color);
+        border-color: rgba(14,165,233,0.3);
+    }
+
+    /* Tab panels */
+    .tab-panel {
+        display: none;
+        animation: fadeIn 0.2s ease;
+    }
+
+    .tab-panel.active {
+        display: block;
+    }
+
+    .tab-empty {
+        text-align: center;
+        padding: 3rem 1rem;
+    }
+
     .form-control:focus, .form-select:focus {
         border-color: var(--primary-color);
         box-shadow: 0 0 0 0.2rem var(--ring-color);
@@ -367,12 +399,43 @@
 </style>
 
 <script>
+    // Tab switching
+    document.querySelectorAll('.session-tab').forEach(function(tab) {
+        tab.addEventListener('click', function() {
+            document.querySelectorAll('.session-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+            tab.classList.add('active');
+            document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
+        });
+    });
+
+    // Auto-open Conferences tab when show_all=1 is in the URL
+    {% if show_all %}
+    document.querySelectorAll('.session-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.querySelector('[data-tab="conference"]').classList.add('active');
+    document.getElementById('tab-conference').classList.add('active');
+    {% endif %}
+
+    // All-departments toggle (conferences only)
+    const showAllToggle = document.getElementById('showAllToggle');
+    if (showAllToggle) {
+        showAllToggle.addEventListener('change', function() {
+            const url = new URL(window.location.href);
+            if (this.checked) {
+                url.searchParams.set('show_all', '1');
+            } else {
+                url.searchParams.delete('show_all');
+            }
+            window.location.href = url.toString();
+        });
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
         const filtersForm = document.getElementById('filtersForm');
         const searchInput = document.getElementById('searchInput');
         const sessionTypeFilter = document.getElementById('sessionTypeFilter');
         const dateFilter = document.getElementById('dateFilter');
-        const creatorTypeFilter = document.getElementById('creatorTypeFilter');
         const clearFiltersBtn = document.getElementById('clearFiltersBtn');
         const localDatetimeInput = document.getElementById('localDatetimeInput');
         function setLocalDatetime() {
@@ -380,9 +443,7 @@
             localDatetimeInput.value = now.toISOString();
         }
         setLocalDatetime();
-        // Update before submit
         filtersForm.addEventListener('submit', setLocalDatetime);
-        // Submit form on filter change
         searchInput.addEventListener('keydown', function(e) {
             if (e.key === 'Enter') {
                 setLocalDatetime();
@@ -397,17 +458,10 @@
             setLocalDatetime();
             filtersForm.submit();
         });
-        creatorTypeFilter.addEventListener('change', function() {
-            setLocalDatetime();
-            // Ensure the value is set before submitting
-            console.log('Creator type filter changed to:', this.value);
-            filtersForm.submit();
-        });
         clearFiltersBtn.addEventListener('click', function() {
             searchInput.value = '';
             sessionTypeFilter.value = '';
             dateFilter.value = '';
-            creatorTypeFilter.value = '';
             setLocalDatetime();
             filtersForm.submit();
         });

@@ -1,0 +1,198 @@
+{% load session_tags %}
+<div class="col-lg-6 col-xl-4 session-card"
+     data-title="{{ session.title|lower }}"
+     data-type="{% if session.is_virtual %}virtual{% else %}in-person{% endif %}"
+     data-date="{% if session.display_start_time %}{{ session.display_start_time|date:'Y-m-d' }}{% else %}{{ session.start_time|date:'Y-m-d' }}{% endif %}">
+
+    <div class="card h-100 session-item {% if session.owner|is_admin %}session-admin{% elif session.owner|is_leader %}session-leader{% endif %}">
+
+        <!-- Type accent stripe -->
+        <div class="session-stripe {% if session.is_virtual %}stripe-virtual{% else %}stripe-inperson{% endif %}"></div>
+
+        <div class="card-header bg-transparent border-0 pb-0 pt-3">
+            <div class="d-flex justify-content-between align-items-start">
+                <span class="badge {% if session.is_virtual %}badge-virtual{% else %}badge-inperson{% endif %} mb-2">
+                    <i class="fas fa-{% if session.is_virtual %}video{% else %}map-marker-alt{% endif %} me-1"></i>
+                    {% if session.is_virtual %}Virtual{% else %}In-Person{% endif %}
+                </span>
+                <div class="dropdown">
+                    <button class="btn btn-sm btn-ghost-icon dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-ellipsis-v"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="{% url 'core:detail' session.pk %}">
+                            <i class="fas fa-eye me-2"></i>View Details
+                        </a></li>
+                        {% if user == session.owner %}
+                        <li><a class="dropdown-item" href="{% url 'core:edit' session.pk %}">
+                            <i class="fas fa-edit me-2"></i>Edit
+                        </a></li>
+                        <li><hr class="dropdown-divider my-1"></li>
+                        <li><a class="dropdown-item text-danger" href="{% url 'core:delete' session.pk %}">
+                            <i class="fas fa-trash me-2"></i>Delete
+                        </a></li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+            <h5 class="card-title fw-bold mb-1 lh-sm">
+                <a href="{% url 'core:detail' session.pk %}" class="text-decoration-none text-dark">
+                    {{ session.title }}
+                </a>
+            </h5>
+        </div>
+
+        <div class="card-body pt-2">
+            <p class="card-text small mb-3">
+                {{ session.description|truncatewords:20 }}
+            </p>
+
+            <!-- Meta chips -->
+            <div class="meta-chip-grid mb-3">
+                <div class="meta-chip">
+                    <i class="fas fa-calendar text-primary"></i>
+                    <span>{% if session.display_start_time %}{{ session.display_start_time|date:"M j" }}{% else %}{{ session.start_time|date:"M j" }}{% endif %}</span>
+                </div>
+                <div class="meta-chip">
+                    <i class="fas fa-clock text-primary"></i>
+                    <span>{% if session.display_start_time %}{{ session.display_start_time|time:"g:i A" }}{% else %}{{ session.start_time|time:"g:i A" }}{% endif %}</span>
+                </div>
+                <div class="meta-chip">
+                    <i class="fas fa-user text-muted"></i>
+                    <span>{{ session.owner.username }}</span>
+                </div>
+                <div class="meta-chip {% if session.num_members >= session.capacity %}text-danger{% endif %}">
+                    <i class="fas fa-users {% if session.num_members >= session.capacity %}text-danger{% else %}text-muted{% endif %}"></i>
+                    <span>{{ session.num_members }}/{{ session.capacity }}</span>
+                </div>
+            </div>
+
+            <!-- Subjects -->
+            {% if session.subjects.all %}
+            <div class="session-subjects mb-3">
+                {% for subject in session.subjects.all %}
+                <span class="badge bg-light me-1 mb-1">
+                    <i class="fas fa-book me-1"></i>{{ subject.name }}
+                </span>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- Location -->
+            {% if session.is_virtual %}
+            <div class="location-chip location-virtual">
+                <i class="fas fa-link"></i>
+                <small>Virtual link available</small>
+            </div>
+            {% else %}
+            <div class="location-chip location-inperson">
+                <i class="fas fa-map-marker-alt"></i>
+                <small>{{ session.location_text|default:"Location TBD" }}</small>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="card-footer bg-transparent border-0 pt-0 px-3 pb-3">
+            <div class="d-flex gap-2">
+                {% if session|is_member:user %}
+                    <button class="btn btn-sm btn-outline-danger flex-fill"
+                            onclick="leaveSession({{ session.pk }})">
+                        <i class="fas fa-sign-out-alt me-1"></i>Step Out
+                    </button>
+                {% else %}
+                    {% if session.num_members >= session.capacity %}
+                        <a href="{% url 'core:waitlist' session.pk %}" class="btn btn-sm btn-warning flex-fill">
+                            <i class="fas fa-hourglass-half me-1"></i>Join Queue
+                        </a>
+                    {% else %}
+                        <button class="btn btn-sm btn-success flex-fill"
+                                onclick="joinSession({{ session.pk }})">
+                            <i class="fas fa-bolt me-1"></i>Jump In
+                        </button>
+                    {% endif %}
+                {% endif %}
+                <a href="{% url 'core:detail' session.pk %}" class="btn btn-sm btn-outline-secondary">
+                    <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Session stripe */
+.session-stripe {
+    height: 4px;
+    margin: 0;
+    border-radius: 0;
+    flex-shrink: 0;
+}
+.stripe-virtual  { background: linear-gradient(90deg, #38bdf8, #06b6d4); }
+.stripe-inperson { background: linear-gradient(90deg, #fb923c, #f59e0b); }
+
+/* Badges */
+.badge-virtual {
+    background: rgba(56, 189, 248, 0.15);
+    color: #38bdf8;
+    border: 1px solid rgba(56, 189, 248, 0.30);
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 20px;
+}
+.badge-inperson {
+    background: rgba(251, 146, 60, 0.15);
+    color: #fb923c;
+    border: 1px solid rgba(251, 146, 60, 0.30);
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 20px;
+}
+[data-theme="light"] .badge-virtual  { background: rgba(14, 165, 233, 0.10); color: #0284c7; border-color: rgba(14,165,233,0.25); }
+[data-theme="light"] .badge-inperson { background: rgba(249,115,22,0.10);  color: #c2410c; border-color: rgba(249,115,22,0.25); }
+
+/* Ghost icon button */
+.btn-ghost-icon {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    padding: 4px 8px;
+    border-radius: 6px;
+    transition: background 0.15s;
+}
+.btn-ghost-icon:hover { background: var(--surface-muted); color: var(--text-color); }
+.btn-ghost-icon::after { display: none; }
+
+/* Meta chip grid */
+.meta-chip-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+}
+.meta-chip {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+.meta-chip i { width: 14px; text-align: center; flex-shrink: 0; }
+
+/* Location chips */
+.location-chip {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    border-radius: 8px;
+    font-size: 0.8rem;
+}
+.location-virtual  { background: rgba(56,189,248,0.10); color: #38bdf8; }
+.location-inperson { background: var(--surface-muted); color: var(--text-muted); }
+[data-theme="light"] .location-virtual { background: rgba(14,165,233,0.08); color: #0284c7; }
+
+/* Role tints */
+.session-item.session-admin  { background: rgba(251,191,36,0.08) !important; border-color: rgba(251,191,36,0.25) !important; }
+.session-item.session-leader { background: rgba(34,197,94,0.08)  !important; border-color: rgba(34,197,94,0.25)  !important; }
+</style>

@@ -7,23 +7,27 @@ class SubjectTag(models.Model):
     BACHELORS = 'bachelors'
     MASTERS = 'masters'
     PHD = 'phd'
-    
+
     EDUCATION_LEVEL_CHOICES = [
         (BACHELORS, 'Bachelor'),
         (MASTERS, 'Masters'),
         (PHD, 'Doctorate/PhD'),
     ]
-    
-    name = models.CharField(max_length=60, unique=True)
-    slug = models.SlugField(max_length=60, unique=True)
+
+    # name is NOT globally unique — same subject can exist at different education levels
+    name = models.CharField(max_length=60)
+    slug = models.SlugField(max_length=80, unique=True)
     education_level = models.CharField(max_length=20, choices=EDUCATION_LEVEL_CHOICES, default=BACHELORS)
-    department = models.CharField(max_length=60, blank=True)  # New field for department
+    department = models.CharField(max_length=60, blank=True)
 
     def __str__(self):
         return f"{self.name} ({self.get_education_level_display()})"
-    
+
     class Meta:
+        # One subject name per education level (allows "Calculus" for both Bachelors and Masters)
         unique_together = ['name', 'education_level']
+        indexes = [models.Index(fields=['education_level', 'department'])]
+        ordering = ['department', 'name']
 
 class StudySession(models.Model):
     RECURRENCE_CHOICES = [
@@ -46,6 +50,17 @@ class StudySession(models.Model):
     capacity = models.PositiveIntegerField(default=8)
     created_at = models.DateTimeField(default=timezone.now)
     
+    CATEGORY_GENERAL = 'general'
+    CATEGORY_STUDY = 'study_session'
+    CATEGORY_CONFERENCE = 'conference'
+    CATEGORY_CHOICES = [
+        (CATEGORY_GENERAL, 'General'),
+        (CATEGORY_STUDY, 'Study Session'),
+        (CATEGORY_CONFERENCE, 'Conference'),
+    ]
+
+    category = models.CharField(max_length=20, choices=CATEGORY_CHOICES, default=CATEGORY_GENERAL)
+
     # Recurring fields
     is_recurring = models.BooleanField(default=False)
     recurrence_type = models.CharField(max_length=20, choices=RECURRENCE_CHOICES, default='none')
@@ -54,7 +69,10 @@ class StudySession(models.Model):
     parent_session = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='recurring_instances')
 
     class Meta:
-        indexes = [models.Index(fields=['start_time'])]
+        indexes = [
+            models.Index(fields=['start_time']),
+            models.Index(fields=['owner', 'start_time']),
+        ]
         ordering = ['start_time']
 
     def __str__(self):
@@ -83,6 +101,7 @@ class Message(models.Model):
 
     class Meta:
         ordering = ['created_at']
+        indexes = [models.Index(fields=['session', 'created_at'])]
 
 class WaitlistEntry(models.Model):
     session = models.ForeignKey(StudySession, on_delete=models.CASCADE, related_name='waitlist')
@@ -118,9 +137,18 @@ class Attendance(models.Model):
     def __str__(self):
         return f"{self.user.username} - {self.session.title} - {self.get_status_display()}"
 class StudyNote(models.Model):
+    session = models.ForeignKey(StudySession, on_delete=models.CASCADE, null=True, blank=True, related_name='notes')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True, related_name='study_notes')
     title = models.CharField(max_length=100)
     content = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [models.Index(fields=['session', 'user'])]
+
+    def __str__(self):
+        return f"{self.title} — {self.user.username if self.user else 'unknown'}"
 
 
 class UserProfile(models.Model):

@@ -1,0 +1,230 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Edit Profile - StudyHub{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-7">
+
+        <!-- Header -->
+        <div class="d-flex align-items-center gap-3 mb-5">
+            <a href="{% url 'core:profile' %}" class="btn btn-outline-secondary btn-sm">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+            <div>
+                <h1 class="h3 fw-bold text-primary mb-0">
+                    <i class="fas fa-user-edit me-2"></i>Edit Profile
+                </h1>
+                <p class="text-muted mb-0">Update your account and academic details</p>
+            </div>
+        </div>
+
+        <form method="post" id="editProfileForm" novalidate>
+            {% csrf_token %}
+
+            <!-- Account Information -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-transparent border-bottom border-opacity-25">
+                    <h5 class="card-title mb-0 py-1">
+                        <i class="fas fa-id-card me-2 text-primary"></i>Account Information
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+
+                    <div class="mb-4">
+                        <label for="{{ account_form.username.id_for_label }}" class="form-label fw-semibold">
+                            Username
+                        </label>
+                        {{ account_form.username }}
+                        {% if account_form.username.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in account_form.username.errors %}
+                                    <i class="fas fa-exclamation-circle me-1"></i>{{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">This is how others see you on StudyHub.</div>
+                    </div>
+
+                    <div class="mb-2">
+                        <label for="{{ account_form.email.id_for_label }}" class="form-label fw-semibold">
+                            Email Address
+                        </label>
+                        {{ account_form.email }}
+                        {% if account_form.email.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in account_form.email.errors %}
+                                    <i class="fas fa-exclamation-circle me-1"></i>{{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">Used for session notifications. Never shared publicly.</div>
+                    </div>
+
+                </div>
+            </div>
+
+            {% if not is_admin %}
+            <!-- Academic Profile -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-transparent border-bottom border-opacity-25">
+                    <h5 class="card-title mb-0 py-1">
+                        <i class="fas fa-graduation-cap me-2 text-primary"></i>Academic Profile
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+
+                    {% if not is_faculty %}
+                    <div class="mb-4">
+                        <label for="{{ profile_form.education_level.id_for_label }}" class="form-label fw-semibold">
+                            Education Level
+                        </label>
+                        {{ profile_form.education_level }}
+                        {% if profile_form.education_level.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in profile_form.education_level.errors %}
+                                    <i class="fas fa-exclamation-circle me-1"></i>{{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">Changing this affects which study sessions appear in your feed.</div>
+                    </div>
+                    {% endif %}
+
+                    <div class="mb-4">
+                        <label for="{{ profile_form.department.id_for_label }}" class="form-label fw-semibold">
+                            Department
+                        </label>
+                        {{ profile_form.department }}
+                        {% if profile_form.department.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in profile_form.department.errors %}
+                                    <i class="fas fa-exclamation-circle me-1"></i>{{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    {% if not is_faculty %}
+                    <div class="mb-4">
+                        <label for="{{ profile_form.major.id_for_label }}" class="form-label fw-semibold">
+                            Major
+                        </label>
+                        {{ profile_form.major }}
+                        {% if profile_form.major.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in profile_form.major.errors %}
+                                    <i class="fas fa-exclamation-circle me-1"></i>{{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-2">
+                        <label for="{{ profile_form.minor.id_for_label }}" class="form-label fw-semibold">
+                            Minor <span class="text-muted fw-normal">(optional)</span>
+                        </label>
+                        {{ profile_form.minor }}
+                        {% if profile_form.minor.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in profile_form.minor.errors %}
+                                    <i class="fas fa-exclamation-circle me-1"></i>{{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Actions -->
+            <div class="d-flex gap-3">
+                <button type="submit" class="btn btn-primary btn-lg flex-fill" id="saveBtn">
+                    <i class="fas fa-save me-2"></i>Save Changes
+                </button>
+                <a href="{% url 'core:profile' %}" class="btn btn-outline-secondary btn-lg">
+                    Cancel
+                </a>
+            </div>
+        </form>
+
+        <!-- Change Password link -->
+        <div class="text-center mt-4">
+            <a href="{% url 'core:change_password' %}" class="text-muted text-decoration-none">
+                <i class="fas fa-key me-1"></i>Change password instead
+            </a>
+        </div>
+
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const departmentSelect = document.getElementById('{{ profile_form.department.id_for_label }}');
+    const majorSelect = document.getElementById('{{ profile_form.major.id_for_label }}');
+    const minorSelect = document.getElementById('{{ profile_form.minor.id_for_label }}');
+    const urlTemplate = "{% url 'core:department_options' 0 %}";
+
+    const selectedMajor = "{{ profile_form.major.value|default_if_none:''|escapejs }}";
+    const selectedMinor = "{{ profile_form.minor.value|default_if_none:''|escapejs }}";
+
+    function setOptions(select, items, placeholder, selectedValue) {
+        const current = select.value;
+        select.innerHTML = '';
+        const blank = document.createElement('option');
+        blank.value = '';
+        blank.textContent = placeholder;
+        select.appendChild(blank);
+        items.forEach(function (item) {
+            const opt = document.createElement('option');
+            opt.value = item.id;
+            opt.textContent = item.name;
+            if (selectedValue && String(item.id) === String(selectedValue)) {
+                opt.selected = true;
+            }
+            select.appendChild(opt);
+        });
+    }
+
+    async function loadOptions(departmentId, preserveSelection) {
+        if (!departmentId) {
+            setOptions(majorSelect, [], 'Select a major', '');
+            setOptions(minorSelect, [], 'None', '');
+            majorSelect.disabled = true;
+            minorSelect.disabled = true;
+            return;
+        }
+        majorSelect.disabled = false;
+        minorSelect.disabled = false;
+        const url = urlTemplate.replace('/0/', '/' + departmentId + '/');
+        try {
+            const res = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+            const data = await res.json();
+            setOptions(majorSelect, data.majors || [], 'Select a major', preserveSelection ? selectedMajor : '');
+            setOptions(minorSelect, data.minors || [], 'None', preserveSelection ? selectedMinor : '');
+        } catch (e) {
+            setOptions(majorSelect, [], 'Select a major', '');
+            setOptions(minorSelect, [], 'None', '');
+        }
+    }
+
+    if (departmentSelect && majorSelect && minorSelect) {
+        departmentSelect.addEventListener('change', function () {
+            loadOptions(this.value, false);
+        });
+        // Load current department's options on page load
+        loadOptions(departmentSelect.value, true);
+    }
+
+    // Save button loading state
+    document.getElementById('editProfileForm').addEventListener('submit', function () {
+        const btn = document.getElementById('saveBtn');
+        btn.innerHTML = '<span class="loading-spinner me-2"></span>Saving…';
+        btn.disabled = true;
+    });
+});
+</script>
+{% endblock %}

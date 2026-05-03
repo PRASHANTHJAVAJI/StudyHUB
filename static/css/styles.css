@@ -268,16 +268,16 @@ form {
 }
 
 .session-card {
-    background: var(--surface-strong, white);
-    border-radius: 8px;
+    background: var(--surface-strong, #161b22);
+    border-radius: 16px;
     padding: 20px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: var(--card-shadow, 0 1px 3px rgba(0,0,0,0.3));
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
 
 .session-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    transform: translateY(-4px);
+    box-shadow: var(--card-shadow-hover, 0 8px 32px rgba(0,0,0,0.5));
 }
 
 .session-header {
@@ -546,12 +546,13 @@ form {
 }
 
 /* Footer */
-footer {
-    background-color: var(--dark-color, #333);
-    color: var(--surface-strong, white);
+footer, .footer {
+    background-color: transparent;
+    color: var(--text-muted, #8b949e);
     text-align: center;
     padding: 20px;
     margin-top: auto;
+    border-top: 1px solid var(--border-color, rgba(240,246,252,0.10));
 }
 
 /* Responsive design */

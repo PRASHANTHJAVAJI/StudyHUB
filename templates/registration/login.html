@@ -1,224 +1,385 @@
 {% extends "core/base.html" %}
-
 {% block title %}Log In - StudyHub{% endblock %}
 
 {% block content %}
-<div class="auth-screen">
-    <div class="auth-shell">
-        <div class="auth-hero">
-            <div class="auth-badge">Welcome Back</div>
-            <h1 class="auth-title">Log In to StudyHub</h1>
-            <p class="auth-subtitle">
-                Pick up where you left off and stay connected with your study groups.
-            </p>
-            <div class="auth-features">
-                <div class="auth-feature">
-                    <span>Track upcoming sessions</span>
+<div class="auth-page">
+    <div class="auth-split">
+
+        <!-- Left: Brand panel -->
+        <div class="auth-brand">
+            <div class="auth-brand-inner">
+                <div class="auth-logo">
+                    <i class="fas fa-graduation-cap"></i>
+                    <span>StudyHub</span>
                 </div>
-                <div class="auth-feature">
-                    <span>Stay synced with your peers</span>
-                </div>
-                <div class="auth-feature">
-                    <span>Access personalized recommendations</span>
-                </div>
+                <h1 class="auth-headline">Good to<br>see you. 👋</h1>
+                <p class="auth-tagline">Your study groups are waiting. Pick up right where you left off.</p>
+                <ul class="auth-perks">
+                    <li><i class="fas fa-check-circle"></i> Track upcoming sessions</li>
+                    <li><i class="fas fa-check-circle"></i> Stay synced with your peers</li>
+                    <li><i class="fas fa-check-circle"></i> Access personalized recommendations</li>
+                </ul>
             </div>
+            <div class="auth-blob auth-blob-1"></div>
+            <div class="auth-blob auth-blob-2"></div>
         </div>
 
-        <div class="auth-card">
-            <div class="auth-card-header">
-                <h2>Sign in</h2>
-                <p>Use your StudyHub credentials.</p>
-            </div>
+        <!-- Right: Form panel -->
+        <div class="auth-form-panel">
+            <div class="auth-form-card">
 
-            <form method="post" class="auth-form">
-                {% csrf_token %}
+                <div class="auth-form-logo-mobile">
+                    <i class="fas fa-graduation-cap"></i> StudyHub
+                </div>
 
-                {% if form.errors %}
-                    <div class="alert alert-danger">
-                        <h5>Please correct the following errors:</h5>
-                        {{ form.errors }}
+                <h2 class="auth-form-title">Welcome back</h2>
+                <p class="auth-form-sub">Sign in to your account to continue.</p>
+
+                <form method="post" class="auth-form">
+                    {% csrf_token %}
+
+                    {% if form.non_field_errors %}
+                    <div class="auth-alert">
+                        <i class="fas fa-exclamation-circle me-2"></i>
+                        {% for error in form.non_field_errors %}{{ error }}{% endfor %}
                     </div>
-                {% endif %}
-
-                <div class="mb-3">
-                    <label for="id_username" class="form-label">Username</label>
-                    {{ form.username }}
-                    {% if form.username.errors %}
-                        <div class="text-danger">{{ form.username.errors }}</div>
                     {% endif %}
-                </div>
 
-                <div class="mb-3">
-                    <label for="id_password" class="form-label">Password</label>
-                    {{ form.password }}
-                    {% if form.password.errors %}
-                        <div class="text-danger">{{ form.password.errors }}</div>
-                    {% endif %}
-                </div>
+                    <div class="auth-field">
+                        <label for="id_username">Username</label>
+                        <div class="auth-input-wrap">
+                            <i class="fas fa-user auth-input-icon"></i>
+                            <input type="text" name="username" id="id_username"
+                                   class="auth-input{% if form.username.errors %} is-invalid{% endif %}"
+                                   value="{{ form.username.value|default:'' }}"
+                                   autocomplete="username" autofocus placeholder="Your username">
+                        </div>
+                        {% if form.username.errors %}
+                        <div class="auth-field-error"><i class="fas fa-exclamation-circle me-1"></i>{{ form.username.errors.0 }}</div>
+                        {% endif %}
+                    </div>
 
-                <button type="submit" class="btn btn-primary btn-lg w-100">Log In</button>
-            </form>
+                    <div class="auth-field">
+                        <label for="id_password">Password</label>
+                        <div class="auth-input-wrap">
+                            <i class="fas fa-lock auth-input-icon"></i>
+                            <input type="password" name="password" id="id_password"
+                                   class="auth-input{% if form.password.errors %} is-invalid{% endif %}"
+                                   autocomplete="current-password" placeholder="Your password">
+                            <button type="button" class="auth-eye-btn" id="togglePwd" aria-label="Toggle password">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                        {% if form.password.errors %}
+                        <div class="auth-field-error"><i class="fas fa-exclamation-circle me-1"></i>{{ form.password.errors.0 }}</div>
+                        {% endif %}
+                    </div>
 
-            <div class="auth-footer">
-                <p>Don't have an account? <a href="{% url 'core:signup' %}">Sign Up</a></p>
+                    <button type="submit" class="auth-submit-btn">
+                        Sign In <i class="fas fa-arrow-right ms-2"></i>
+                    </button>
+                </form>
+
+                <p class="auth-switch">
+                    New here? <a href="{% url 'core:signup' %}">Create an account</a>
+                </p>
             </div>
         </div>
+
     </div>
 </div>
 
 <style>
-    .navbar,
-    .footer {
-        display: none;
-    }
-
+    .navbar, .footer { display: none !important; }
+    .container-fluid { padding: 0 !important; }
     .main-content {
-        background: transparent;
-        box-shadow: none;
-        padding: 0;
-        max-width: none;
-        margin: 0;
-        animation: none;
+        padding: 0 !important;
+        margin: 0 !important;
+        max-width: none !important;
+        background: transparent !important;
+        box-shadow: none !important;
+        border: none !important;
+        border-radius: 0 !important;
+        animation: none !important;
     }
+    body { background: var(--bg-gradient); }
 
-    .container-fluid {
-        padding-top: 0;
-    }
+    .auth-page { min-height: 100vh; display: flex; }
 
-    .auth-screen {
+    .auth-split {
+        display: flex;
+        width: 100%;
         min-height: 100vh;
+    }
+
+    /* ── Left brand panel ─────────────────────── */
+    .auth-brand {
+        flex: 0 0 52%;
+        background: linear-gradient(145deg, #070b14 0%, #0a1628 35%, #0b2040 65%, #0d2d55 100%);
         display: flex;
         align-items: center;
         justify-content: center;
-        padding: 0;
-        background: var(--bg-gradient);
+        padding: 60px 56px;
+        position: relative;
+        overflow: hidden;
     }
 
-    .auth-shell {
-        width: 100%;
-        max-width: 1080px;
-        display: grid;
-        gap: 28px;
+    .auth-brand::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background-image: radial-gradient(rgba(56,189,248,0.12) 1px, transparent 1px);
+        background-size: 28px 28px;
+        pointer-events: none;
+    }
+
+    .auth-blob {
+        position: absolute;
+        border-radius: 50%;
+        pointer-events: none;
+    }
+    .auth-blob-1 {
+        width: 480px; height: 480px;
+        top: -160px; right: -140px;
+        background: radial-gradient(circle, rgba(56,189,248,0.18) 0%, transparent 70%);
+    }
+    .auth-blob-2 {
+        width: 320px; height: 320px;
+        bottom: -100px; left: -80px;
+        background: radial-gradient(circle, rgba(14,165,233,0.14) 0%, transparent 70%);
+    }
+
+    .auth-brand-inner {
+        color: #e6edf3;
+        max-width: 380px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .auth-logo {
+        display: flex;
         align-items: center;
-        padding: 32px;
-        min-height: 100vh;
+        gap: 12px;
+        margin-bottom: 52px;
+    }
+    .auth-logo i { font-size: 2rem; color: #38bdf8; }
+    .auth-logo span { font-size: 1.4rem; font-weight: 700; letter-spacing: -0.02em; }
+
+    .auth-headline {
+        font-size: clamp(2.4rem, 4vw, 3.2rem);
+        font-weight: 800;
+        line-height: 1.15;
+        margin-bottom: 18px;
+        letter-spacing: -0.03em;
     }
 
-    .auth-hero {
-        color: white;
-        padding: 30px;
-        border-radius: 22px;
-        background: var(--panel-color);
-        border: 1px solid rgba(255, 255, 255, 0.15);
-        box-shadow: 0 20px 45px rgba(15, 23, 42, 0.35);
-        backdrop-filter: blur(8px);
+    .auth-tagline {
+        font-size: 1rem;
+        color: rgba(230,237,243,0.65);
+        margin-bottom: 40px;
+        line-height: 1.65;
     }
 
-    .auth-badge {
-        display: inline-flex;
-        padding: 6px 12px;
-        border-radius: 999px;
-        font-size: 0.85rem;
-        text-transform: uppercase;
-        letter-spacing: 0.04em;
-        background: rgba(255, 255, 255, 0.18);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        margin-bottom: 16px;
+    .auth-perks {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
     }
-
-    .auth-title {
-        font-size: clamp(2rem, 3vw, 2.6rem);
-        font-weight: 700;
-        margin-bottom: 12px;
+    .auth-perks li {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-size: 0.92rem;
+        color: rgba(230,237,243,0.80);
     }
+    .auth-perks li i { color: #34d399; font-size: 0.95rem; flex-shrink: 0; }
 
-    .auth-subtitle {
-        font-size: 1.05rem;
-        opacity: 0.9;
-        margin-bottom: 20px;
-    }
-
-    .auth-features {
-        display: grid;
-        gap: 10px;
-    }
-
-    .auth-feature {
-        padding: 10px 14px;
-        border-radius: 12px;
-        background: rgba(15, 23, 42, 0.3);
-        border: 1px solid rgba(255, 255, 255, 0.12);
-    }
-
-    .auth-card {
+    /* ── Right form panel ─────────────────────── */
+    .auth-form-panel {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 48px 56px;
         background: var(--surface-strong);
-        border-radius: 22px;
-        padding: 30px;
-        box-shadow: var(--card-shadow);
-        border: 1px solid var(--nav-border);
     }
 
-    .auth-card-header h2 {
+    .auth-form-card {
+        width: 100%;
+        max-width: 380px;
+    }
+
+    .auth-form-logo-mobile {
+        display: none;
+        font-size: 1.25rem;
         font-weight: 700;
-        margin-bottom: 6px;
+        color: var(--primary-color);
+        margin-bottom: 28px;
+        align-items: center;
+        gap: 8px;
+    }
+    .auth-form-logo-mobile i { font-size: 1.4rem; }
+
+    .auth-form-title {
+        font-size: 1.8rem;
+        font-weight: 800;
         color: var(--text-color);
+        margin-bottom: 6px;
+        letter-spacing: -0.02em;
     }
 
-    .auth-card-header p {
+    .auth-form-sub {
         color: var(--text-muted);
-        margin-bottom: 22px;
+        font-size: 0.9rem;
+        margin-bottom: 28px;
     }
 
-    .auth-form .form-control {
-        border-radius: 12px;
-        border: 2px solid var(--border-color);
-        padding: 12px 14px;
+    /* Error alert */
+    .auth-alert {
+        background: rgba(248,113,113,0.10);
+        border: 1px solid rgba(248,113,113,0.30);
+        border-radius: 10px;
+        padding: 12px 16px;
+        color: var(--danger-color);
+        margin-bottom: 20px;
+        font-size: 0.875rem;
     }
 
-    .auth-form .form-control:focus {
+    /* Fields */
+    .auth-field { margin-bottom: 20px; }
+
+    .auth-field label {
+        display: block;
+        font-size: 0.78rem;
+        font-weight: 700;
+        color: var(--text-muted);
+        margin-bottom: 7px;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+    }
+
+    .auth-input-wrap { position: relative; }
+
+    .auth-input-icon {
+        position: absolute;
+        left: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--text-muted);
+        font-size: 0.85rem;
+        pointer-events: none;
+    }
+
+    .auth-input {
+        display: block;
+        width: 100%;
+        padding: 12px 42px 12px 40px;
+        border-radius: 10px;
+        border: 1.5px solid var(--border-color);
+        background: var(--surface-muted);
+        color: var(--text-color);
+        font-size: 0.95rem;
+        transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+        outline: none;
+        -webkit-appearance: none;
+    }
+    .auth-input::placeholder { color: var(--text-muted); opacity: 0.6; }
+    .auth-input:focus {
         border-color: var(--primary-color);
-        box-shadow: 0 0 0 0.2rem var(--ring-color);
+        box-shadow: 0 0 0 3px var(--ring-color);
+        background: var(--surface-strong);
+    }
+    .auth-input.is-invalid { border-color: var(--danger-color); }
+
+    .auth-eye-btn {
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        color: var(--text-muted);
+        cursor: pointer;
+        padding: 4px 6px;
+        font-size: 0.85rem;
+        line-height: 1;
+    }
+    .auth-eye-btn:hover { color: var(--text-color); }
+
+    .auth-field-error {
+        font-size: 0.78rem;
+        color: var(--danger-color);
+        margin-top: 5px;
     }
 
-    .auth-footer {
+    /* Submit button */
+    .auth-submit-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        padding: 13px 20px;
+        background: var(--primary-color);
+        color: #0d1117;
+        border: none;
+        border-radius: 10px;
+        font-size: 0.95rem;
+        font-weight: 700;
+        cursor: pointer;
+        margin-top: 6px;
+        transition: opacity 0.15s, transform 0.15s, box-shadow 0.15s;
+        box-shadow: 0 4px 14px rgba(56,189,248,0.30);
+    }
+    .auth-submit-btn:hover {
+        opacity: 0.90;
+        transform: translateY(-1px);
+        box-shadow: 0 6px 20px rgba(56,189,248,0.40);
+    }
+    .auth-submit-btn:active { transform: translateY(0); }
+
+    .auth-switch {
         text-align: center;
-        margin-top: 18px;
+        margin-top: 22px;
+        font-size: 0.875rem;
         color: var(--text-muted);
     }
-
-    .auth-footer a {
+    .auth-switch a {
         color: var(--primary-color);
         font-weight: 600;
         text-decoration: none;
     }
+    .auth-switch a:hover { text-decoration: underline; }
 
-    @media (min-width: 992px) {
-        .auth-shell {
-            grid-template-columns: 1.1fr 1fr;
+    /* ── Mobile ───────────────────────────────── */
+    @media (max-width: 900px) {
+        .auth-split { flex-direction: column; }
+        .auth-brand {
+            flex: none;
+            padding: 36px 28px 32px;
         }
+        .auth-brand-inner { max-width: 100%; }
+        .auth-headline { font-size: 2rem; }
+        .auth-perks { display: none; }
+        .auth-tagline { margin-bottom: 0; }
+        .auth-form-panel { flex: none; padding: 36px 28px; }
+        .auth-form-logo-mobile { display: flex; }
     }
-
-    @media (max-width: 768px) {
-        .auth-screen {
-            padding: 0;
-        }
-
-        .auth-hero,
-        .auth-card {
-            padding: 22px;
-        }
-    }
-
-    @media (max-height: 820px) {
-        .auth-screen {
-            padding: 0;
-        }
-
-        .auth-hero,
-        .auth-card {
-            padding: 20px;
-        }
-    }
-
 </style>
+
+<script>
+document.getElementById('togglePwd').addEventListener('click', function () {
+    const input = document.getElementById('id_password');
+    const icon = this.querySelector('i');
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.className = 'fas fa-eye-slash';
+    } else {
+        input.type = 'password';
+        icon.className = 'fas fa-eye';
+    }
+});
+</script>
 {% endblock %}

@@ -17,77 +17,82 @@
 
     <script>
         (function () {
-            const storedTheme = localStorage.getItem('studyhub_theme');
-            if (storedTheme) {
-                document.documentElement.setAttribute('data-theme', storedTheme);
-            }
+            /* Dark is default. Only switch to light if explicitly saved. */
+            const t = localStorage.getItem('studyhub_theme');
+            if (t === 'light') document.documentElement.setAttribute('data-theme', 'light');
         })();
     </script>
     
     <style>
+        /* ── Dark mode — DEFAULT ───────────────────────────── */
         :root {
-            --primary-color: #0ea5e9;
-            --secondary-color: #f97316;
-            --accent-color: #22c55e;
-            --primary-soft: rgba(14, 165, 233, 0.12);
-            --secondary-soft: rgba(249, 115, 22, 0.14);
-            --accent-soft: rgba(34, 197, 94, 0.12);
-            --success-color: #16a34a;
-            --warning-color: #f59e0b;
-            --danger-color: #ef4444;
-            --dark-color: #0f172a;
-            --light-color: #f8fafc;
-            --border-color: rgba(148, 163, 184, 0.35);
-            --text-color: #0f172a;
-            --text-muted: #64748b;
-            --surface-color: rgba(255, 255, 255, 0.94);
-            --surface-strong: #ffffff;
-            --surface-muted: #f1f5f9;
-            --nav-bg: rgba(255, 255, 255, 0.86);
-            --nav-border: rgba(148, 163, 184, 0.25);
-            --panel-color: rgba(15, 23, 42, 0.65);
-            --panel-muted: rgba(15, 23, 42, 0.4);
-            --ring-color: rgba(14, 165, 233, 0.25);
-            --card-shadow: 0 24px 40px -28px rgba(15, 23, 42, 0.55);
-            --bg-gradient: #0b1120;
-            --bs-body-color: var(--text-color);
-            --bs-body-bg: var(--bg-gradient);
-            --bs-border-color: var(--border-color);
-            --bs-card-bg: var(--surface-strong);
-            --bs-card-color: var(--text-color);
+            --primary-color:   #38bdf8;
+            --primary-dark:    #0ea5e9;
+            --secondary-color: #fb923c;
+            --accent-color:    #34d399;
+            --success-color:   #22c55e;
+            --warning-color:   #fbbf24;
+            --danger-color:    #f87171;
+            --primary-soft:    rgba(56,  189, 248, 0.15);
+            --secondary-soft:  rgba(251, 146, 60,  0.18);
+            --accent-soft:     rgba(52,  211, 153, 0.15);
+            --bg-gradient:     #0d1117;
+            --surface-strong:  #161b22;
+            --surface-muted:   #21262d;
+            --surface-color:   rgba(22, 27, 34, 0.95);
+            --text-color:      #e6edf3;
+            --text-muted:      #8b949e;
+            --border-color:    rgba(240, 246, 252, 0.10);
+            --nav-border:      rgba(240, 246, 252, 0.08);
+            --nav-bg:          rgba(13,  17,  23,  0.96);
+            --card-shadow:       0 1px 3px rgba(0,0,0,0.30), 0 8px 24px rgba(0,0,0,0.25);
+            --card-shadow-hover: 0 8px 32px rgba(0,0,0,0.55), 0 4px 12px rgba(0,0,0,0.30);
+            --ring-color:      rgba(56, 189, 248, 0.30);
+            --dark-color:      #e6edf3;
+            --light-color:     #0d1117;
+            --panel-color:     rgba(22, 27, 34, 0.92);
+            --panel-muted:     rgba(33, 38, 45, 0.85);
+            --bs-body-color:      var(--text-color);
+            --bs-body-bg:         var(--bg-gradient);
+            --bs-border-color:    var(--border-color);
+            --bs-card-bg:         var(--surface-strong);
+            --bs-card-color:      var(--text-color);
             --bs-secondary-color: var(--text-muted);
         }
 
-        [data-theme="dark"] {
-            --primary-color: #38bdf8;
-            --secondary-color: #f59e0b;
-            --accent-color: #34d399;
-            --primary-soft: rgba(56, 189, 248, 0.18);
-            --secondary-soft: rgba(245, 158, 11, 0.2);
-            --accent-soft: rgba(52, 211, 153, 0.16);
-            --success-color: #22c55e;
-            --warning-color: #fbbf24;
-            --danger-color: #f87171;
-            --dark-color: #e2e8f0;
-            --light-color: #0b1220;
-            --border-color: rgba(148, 163, 184, 0.25);
-            --text-color: #e2e8f0;
-            --text-muted: #94a3b8;
-            --surface-color: rgba(15, 23, 42, 0.9);
-            --surface-strong: #111827;
-            --surface-muted: rgba(30, 41, 59, 0.8);
-            --nav-bg: rgba(15, 23, 42, 0.88);
-            --nav-border: rgba(148, 163, 184, 0.18);
-            --panel-color: rgba(15, 23, 42, 0.85);
-            --panel-muted: rgba(30, 41, 59, 0.7);
-            --ring-color: rgba(56, 189, 248, 0.35);
-            --card-shadow: 0 30px 50px -30px rgba(5, 12, 24, 0.9);
-            --bg-gradient: #070b14;
-            --bs-body-color: var(--text-color);
-            --bs-body-bg: var(--bg-gradient);
-            --bs-border-color: var(--border-color);
-            --bs-card-bg: var(--surface-strong);
-            --bs-card-color: var(--text-color);
+        /* ── Light mode — opt-in ───────────────────────────── */
+        [data-theme="light"] {
+            --primary-color:   #0ea5e9;
+            --primary-dark:    #0284c7;
+            --secondary-color: #f97316;
+            --accent-color:    #22c55e;
+            --success-color:   #16a34a;
+            --warning-color:   #d97706;
+            --danger-color:    #dc2626;
+            --primary-soft:    rgba(14,  165, 233, 0.10);
+            --secondary-soft:  rgba(249, 115, 22,  0.12);
+            --accent-soft:     rgba(34,  197, 94,  0.10);
+            --bg-gradient:     #f0f4f8;
+            --surface-strong:  #ffffff;
+            --surface-muted:   #f1f5f9;
+            --surface-color:   rgba(255, 255, 255, 0.96);
+            --text-color:      #1e293b;
+            --text-muted:      #64748b;
+            --border-color:    rgba(15, 23, 42, 0.12);
+            --nav-border:      rgba(15, 23, 42, 0.08);
+            --nav-bg:          rgba(255, 255, 255, 0.96);
+            --card-shadow:       0 1px 3px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.04);
+            --card-shadow-hover: 0 8px 24px rgba(0,0,0,0.10), 0 4px 8px rgba(0,0,0,0.06);
+            --ring-color:      rgba(14, 165, 233, 0.22);
+            --dark-color:      #0f172a;
+            --light-color:     #f8fafc;
+            --panel-color:     rgba(255, 255, 255, 0.95);
+            --panel-muted:     rgba(241, 245, 249, 0.90);
+            --bs-body-color:      var(--text-color);
+            --bs-body-bg:         var(--bg-gradient);
+            --bs-border-color:    var(--border-color);
+            --bs-card-bg:         var(--surface-strong);
+            --bs-card-color:      var(--text-color);
             --bs-secondary-color: var(--text-muted);
         }
         
@@ -136,125 +141,146 @@
         
         .navbar {
             background: var(--nav-bg) !important;
-            backdrop-filter: blur(10px);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
             border-bottom: 1px solid var(--nav-border);
-            box-shadow: 0 10px 25px -20px rgba(15, 23, 42, 0.4);
+            box-shadow: 0 1px 0 var(--nav-border);
+            transition: background 0.3s ease;
         }
-        
+
         .navbar-brand {
-            font-weight: 700;
-            font-size: 1.5rem;
+            font-weight: 800;
+            font-size: 1.25rem;
             color: var(--primary-color) !important;
+            letter-spacing: -0.025em;
         }
-        
+
         .nav-link {
             font-weight: 500;
-            color: var(--text-color) !important;
-            transition: all 0.3s ease;
-            position: relative;
+            font-size: 0.875rem;
+            color: var(--text-muted) !important;
+            transition: color 0.2s ease, background 0.2s ease;
+            padding: 0.45rem 0.8rem !important;
+            border-radius: 8px;
         }
-        
+
         .nav-link:hover {
-            color: var(--primary-color) !important;
-            transform: translateY(-2px);
+            color: var(--text-color) !important;
+            background: var(--surface-muted);
+            transform: none;
         }
-        
-        .nav-link::after {
-            content: '';
-            position: absolute;
-            bottom: -5px;
-            left: 50%;
-            width: 0;
-            height: 2px;
-            background: var(--primary-color);
-            transition: all 0.3s ease;
-            transform: translateX(-50%);
-        }
-        
-        .nav-link:hover::after {
-            width: 100%;
-        }
+
+        .nav-link::after { display: none; }
         
         .main-content {
-            background: var(--surface-color);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            border: 1px solid var(--nav-border);
-            box-shadow: var(--card-shadow);
-            margin: 2rem auto;
+            background: transparent;
+            border: none;
+            border-radius: 0;
+            box-shadow: none;
+            margin: 0;
             padding: 2rem;
-            max-width: 1200px;
-            animation: slideUp 0.6s ease-out;
-        }
-        
-        @keyframes slideUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            max-width: none;
+            animation: none;
         }
         
         .btn-primary {
             background: var(--primary-color);
-            border: none;
-            border-radius: 12px;
-            padding: 12px 24px;
+            border-color: var(--primary-color);
+            border-radius: 10px;
             font-weight: 600;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 8px rgba(56, 189, 248, 0.22);
+            color: #fff;
         }
-        
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+
+        .btn-primary:hover, .btn-primary:focus {
+            background: var(--primary-dark, #0ea5e9);
+            border-color: var(--primary-dark, #0ea5e9);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 14px rgba(56, 189, 248, 0.35);
+            color: #fff;
         }
-        
+
         .btn-outline-primary {
             border: 2px solid var(--primary-color);
             color: var(--primary-color);
-            border-radius: 12px;
-            padding: 10px 22px;
+            border-radius: 10px;
             font-weight: 600;
-            transition: all 0.3s ease;
+            transition: all 0.2s ease;
             background: transparent;
         }
-        
+
         .btn-outline-primary:hover {
             background: var(--primary-color);
-            color: white;
-            transform: translateY(-2px);
+            border-color: var(--primary-color);
+            color: #fff;
+            transform: translateY(-1px);
         }
         
         .form-control, .form-select {
-            border-radius: 12px;
-            border: 2px solid var(--border-color);
-            padding: 12px 16px;
-            transition: all 0.3s ease;
-            font-size: 1rem;
-            background-color: var(--surface-strong);
-            color: var(--text-color);
-        }
-        
-        .form-control:focus, .form-select:focus {
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 0.2rem var(--ring-color);
-            transform: translateY(-1px);
+            border-radius: 10px;
+            border: 1.5px solid var(--border-color);
+            padding: 10px 14px;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+            font-size: 0.95rem;
+            background-color: var(--surface-muted) !important;
+            color: var(--text-color) !important;
         }
 
-        .form-control::placeholder {
-            color: var(--text-muted);
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px var(--ring-color);
+            background-color: var(--surface-strong) !important;
+            color: var(--text-color) !important;
+            outline: none;
+        }
+
+        .form-control::placeholder { color: var(--text-muted); opacity: 0.7; }
+
+        /* Toggle switches — unchecked state */
+        .form-check-input[type="checkbox"] {
+            background-color: var(--surface-muted);
+            border-color: var(--border-color);
+        }
+
+        .form-check-input[type="checkbox"]:checked {
+            background-color: var(--primary-color) !important;
+            border-color: var(--primary-color) !important;
+        }
+
+        /* Switch-specific: show the white knob on the grey track when unchecked */
+        .form-switch .form-check-input {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='rgba(148,163,184,0.9)'/%3e%3c/svg%3e");
+        }
+
+        .form-switch .form-check-input:checked {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='%23fff'/%3e%3c/svg%3e");
+        }
+
+        /* Override browser autofill (Safari/Chrome) which injects its own dark background */
+        input:-webkit-autofill,
+        input:-webkit-autofill:hover,
+        input:-webkit-autofill:focus,
+        input:-webkit-autofill:active,
+        textarea:-webkit-autofill,
+        textarea:-webkit-autofill:hover,
+        textarea:-webkit-autofill:focus,
+        select:-webkit-autofill,
+        select:-webkit-autofill:hover,
+        select:-webkit-autofill:focus {
+            -webkit-box-shadow: 0 0 0 1000px var(--surface-strong) inset !important;
+            -webkit-text-fill-color: var(--text-color) !important;
+            caret-color: var(--text-color) !important;
+            /* Delay the autofill background from appearing */
+            transition: background-color 9999s ease-in-out 0s;
         }
         
         .card {
             border-radius: 16px;
-            border: 1px solid var(--nav-border);
+            border: 1px solid var(--border-color);
             background: var(--surface-strong);
-            box-shadow: 0 16px 24px -20px rgba(15, 23, 42, 0.4);
-            transition: all 0.3s ease;
+            box-shadow: var(--card-shadow);
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
             overflow: hidden;
         }
 
@@ -263,10 +289,10 @@
         .card-footer {
             color: var(--text-color);
         }
-        
+
         .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            transform: translateY(-4px);
+            box-shadow: var(--card-shadow-hover);
         }
         
         .alert {
@@ -278,8 +304,9 @@
         .footer {
             text-align: center;
             padding: 2rem 0;
-            color: rgba(255, 255, 255, 0.8);
+            color: var(--text-muted);
             margin-top: 3rem;
+            border-top: 1px solid var(--border-color);
         }
 
         .text-muted {
@@ -332,12 +359,16 @@
 
         .dropdown-menu {
             background: var(--surface-strong);
-            border: 1px solid var(--nav-border);
-            box-shadow: 0 16px 24px -20px rgba(15, 23, 42, 0.4);
+            border: 1px solid var(--border-color);
+            box-shadow: var(--card-shadow-hover);
+            border-radius: 12px;
+            padding: 6px;
         }
 
         .dropdown-item {
             color: var(--text-color);
+            border-radius: 8px;
+            font-size: 0.875rem;
         }
 
         .dropdown-item:hover,
@@ -382,22 +413,22 @@
 </head>
 <body>
     <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-light fixed-top">
+    <nav class="navbar navbar-expand-lg fixed-top">
         <div class="container">
             <a class="navbar-brand" href="{% url 'core:landing' %}">
                 <i class="fas fa-graduation-cap me-2"></i>StudyHub
             </a>
-            
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+
+            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
-            
+
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
+                <ul class="navbar-nav ms-auto align-items-center gap-1">
                     {% if user.is_authenticated %}
                         <li class="nav-item">
                             <a class="nav-link" href="{% url 'core:home' %}">
-                                <i class="fas fa-home me-1"></i>Feed
+                                <i class="fas fa-home me-1"></i>Home
                             </a>
                         </li>
                         {% if user.is_staff or user.is_superuser %}
@@ -409,7 +440,7 @@
                         {% endif %}
                         <li class="nav-item">
                             <a class="nav-link" href="{% url 'core:create' %}">
-                                <i class="fas fa-plus me-1"></i>Create Session
+                                <i class="fas fa-plus me-1"></i>New Session
                             </a>
                         </li>
                         <li class="nav-item">
@@ -419,13 +450,13 @@
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="{% url 'core:logout' %}">
-                                <i class="fas fa-sign-out-alt me-1"></i>Logout
+                                <i class="fas fa-sign-out-alt me-1"></i>Sign out
                             </a>
                         </li>
                     {% else %}
                         <li class="nav-item">
                             <a class="nav-link" href="{% url 'core:login' %}">
-                                <i class="fas fa-sign-in-alt me-1"></i>Login
+                                <i class="fas fa-sign-in-alt me-1"></i>Sign in
                             </a>
                         </li>
                         <li class="nav-item">
@@ -440,7 +471,7 @@
     </nav>
 
     <!-- Main Content -->
-    <div class="container-fluid" style="padding-top: 80px;">
+    <div class="container-fluid" style="padding-top: 80px; padding-left: 0; padding-right: 0;">
         <div class="main-content">
             {% if messages %}
                 <div class="messages mb-4">
@@ -543,5 +574,6 @@
     </script>
     
     {% block extra_js %}{% endblock %}
+    {% block modals %}{% endblock %}
 </body>
 </html>

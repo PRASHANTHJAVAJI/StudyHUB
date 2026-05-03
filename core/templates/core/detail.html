@@ -4,101 +4,266 @@
 {% block title %}{{ session.title }} · StudyHub{% endblock %}
 
 {% block content %}
-<div class="session-detail-container">
-    <div class="session-header">
-        <h1>{{ session.title }}</h1>
-        <div class="session-meta">
-            <span class="session-type {% if session.is_virtual %}virtual{% else %}in-person{% endif %}">
-                {% if session.is_virtual %}Virtual{% else %}In-Person{% endif %}
-            </span>
-            <span class="session-capacity">{{ session.num_members }}/{{ session.capacity }} joined</span>
-        </div>
-    </div>
+<div class="row justify-content-center">
+    <div class="col-lg-10">
 
-    <div class="session-info">
-        <div class="info-section">
-            <h3>Session Details</h3>
-            <p><strong>When:</strong> {{ session.start_time|date:"M d, Y H:i" }}{% if session.end_time %} - {{ session.end_time|date:"H:i" }}{% endif %}</p>
-            <p><strong>Host:</strong> {{ session.owner.username }}</p>
-            {% if session.is_virtual and session.virtual_link %}
-                <p><strong>Meeting Link:</strong> <a href="{{ session.virtual_link }}" target="_blank" class="btn btn-link">Join Meeting</a></p>
-            {% elif not session.is_virtual and session.location_text %}
-                <p><strong>Location:</strong> {{ session.location_text }}</p>
-            {% endif %}
-            {% if session.subjects.all %}
-                <div class="subjects">
-                    <strong>Subjects:</strong>
+        <!-- Back button -->
+        <div class="mb-4">
+            <a href="{% url 'core:home' %}" class="btn btn-outline-secondary btn-sm">
+                <i class="fas fa-arrow-left me-2"></i>Back
+            </a>
+        </div>
+
+        <!-- Session Header Card -->
+        <div class="card border-0 shadow-lg mb-4">
+            <div class="card-body p-4 p-md-5">
+                <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-3">
+                    <div>
+                        <span class="badge {% if session.is_virtual %}bg-info{% else %}bg-warning{% endif %} fs-6 mb-2">
+                            <i class="fas fa-{% if session.is_virtual %}video{% else %}map-marker-alt{% endif %} me-1"></i>
+                            {% if session.is_virtual %}Virtual{% else %}In-Person{% endif %}
+                        </span>
+                        {% if session.is_recurring %}
+                        <span class="badge bg-secondary fs-6 mb-2 ms-1">
+                            <i class="fas fa-repeat me-1"></i>Recurring
+                        </span>
+                        {% endif %}
+                        <h1 class="h2 fw-bold text-primary mb-1">{{ session.title }}</h1>
+                        <p class="text-muted mb-0">
+                            <i class="fas fa-user me-1"></i>Led by
+                            <strong>{{ session.owner.username }}</strong>
+                        </p>
+                    </div>
+                    {% if request.user == session.owner %}
+                    <div class="d-flex gap-2">
+                        <a href="{% url 'core:edit' session.pk %}" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-edit me-1"></i>Edit
+                        </a>
+                        <a href="{% url 'core:delete' session.pk %}" class="btn btn-outline-danger btn-sm">
+                            <i class="fas fa-trash me-1"></i>Delete
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Meta row -->
+                <div class="row g-3 mb-4">
+                    <div class="col-sm-6 col-md-3">
+                        <div class="detail-meta-item">
+                            <i class="fas fa-calendar text-primary me-2"></i>
+                            <span>{{ session.start_time|date:"M j, Y" }}</span>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-md-3">
+                        <div class="detail-meta-item">
+                            <i class="fas fa-clock text-primary me-2"></i>
+                            <span>
+                                {{ session.start_time|time:"g:i A" }}
+                                {% if session.end_time %} – {{ session.end_time|time:"g:i A" }}{% endif %}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-md-3">
+                        <div class="detail-meta-item">
+                            <i class="fas fa-users text-primary me-2"></i>
+                            <span>{{ session.num_members }}/{{ session.capacity }} joined</span>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-md-3">
+                        <div class="detail-meta-item">
+                            {% if session.is_virtual %}
+                                <i class="fas fa-link text-success me-2"></i>
+                                {% if session.virtual_link %}
+                                    <a href="{{ session.virtual_link }}" target="_blank" rel="noopener" class="text-success fw-semibold">Join Meeting</a>
+                                {% else %}
+                                    <span class="text-muted">Link not provided</span>
+                                {% endif %}
+                            {% else %}
+                                <i class="fas fa-map-marker-alt text-warning me-2"></i>
+                                <span>{{ session.location_text|default:"Location TBD" }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Subjects -->
+                {% if session.subjects.all %}
+                <div class="mb-4">
                     {% for tag in session.subjects.all %}
-                        <span class="subject-tag">{{ tag.name }}</span>
+                        <span class="badge bg-light text-dark me-1 mb-1 px-3 py-2">
+                            <i class="fas fa-book me-1"></i>{{ tag.name }}
+                        </span>
                     {% endfor %}
                 </div>
-            {% endif %}
-            {% if session.description %}
-                <div class="description">
-                    <h4>Description</h4>
-                    <p>{{ session.description }}</p>
+                {% endif %}
+
+                <!-- Description -->
+                {% if session.description %}
+                <div class="mb-4">
+                    <h5 class="fw-semibold mb-2">Description</h5>
+                    <p class="text-muted mb-0" style="white-space: pre-line;">{{ session.description }}</p>
                 </div>
-            {% endif %}
-            <a href="{% url 'core:calendar' session.pk %}" class="btn btn-outline-primary mt-3"><i class="fas fa-calendar-plus me-2"></i>Download Calendar</a>
+                {% endif %}
+
+                <!-- Calendar download -->
+                <a href="{% url 'core:calendar' session.pk %}" class="btn btn-outline-secondary btn-sm">
+                    <i class="fas fa-calendar-plus me-2"></i>Add to Calendar
+                </a>
+            </div>
         </div>
 
-        <!-- Join/Leave Actions -->
-        <div class="session-actions">
-            {% if request.user.is_authenticated %}
+        <!-- Join / Leave Actions -->
+        {% if request.user.is_authenticated %}
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body p-4">
                 {% if is_member %}
-                    <form method="post" action="{% url 'core:leave' session.pk %}" style="display: inline;">
-                        {% csrf_token %}
-                        <button type="submit" class="btn btn-danger">Leave Session</button>
-                    </form>
+                    {% if request.user == session.owner %}
+                        <div class="alert alert-info mb-0">
+                            <i class="fas fa-crown me-2"></i>
+                            You're hosting this one 🙌
+                        </div>
+                    {% else %}
+                        <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+                            <div class="text-success fw-semibold">
+                                <i class="fas fa-check-circle me-2"></i>You're in! 🎉
+                            </div>
+                            <form method="post" action="{% url 'core:leave' session.pk %}" class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-outline-danger"
+                                        onclick="return confirm('Step out of this session?')">
+                                    <i class="fas fa-sign-out-alt me-2"></i>Step Out
+                                </button>
+                            </form>
+                        </div>
+                    {% endif %}
                 {% else %}
                     {% if spots_left > 0 %}
-                        <form method="post" action="{% url 'core:join' session.pk %}" style="display: inline;">
-                            {% csrf_token %}
-                            <button type="submit" class="btn btn-success">Join Session</button>
-                        </form>
+                        <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+                            <span class="text-muted">
+                                <i class="fas fa-users me-2"></i><strong>{{ spots_left }}</strong> spot{{ spots_left|pluralize }} left
+                            </span>
+                            <form method="post" action="{% url 'core:join' session.pk %}" class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-success btn-lg">
+                                    <i class="fas fa-bolt me-2"></i>Jump In
+                                </button>
+                            </form>
+                        </div>
                     {% else %}
-                        <form method="post" action="{% url 'core:waitlist' session.pk %}" style="display: inline;">
-                            {% csrf_token %}
-                            <button type="submit" class="btn btn-warning">Join Waitlist</button>
-                        </form>
-                        <p class="session-full mt-2"><small>Session is full. You can join the waitlist above.</small></p>
+                        <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+                            <span class="text-danger fw-semibold">
+                                <i class="fas fa-lock me-2"></i>Session is full
+                            </span>
+                            <form method="post" action="{% url 'core:waitlist' session.pk %}" class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-warning">
+                                    <i class="fas fa-hourglass-half me-2"></i>Join the Queue
+                                </button>
+                            </form>
+                        </div>
                     {% endif %}
                 {% endif %}
-            {% else %}
-                <p><a href="{% url 'admin:login' %}">Login to join this session</a></p>
-            {% endif %}
+            </div>
         </div>
-    </div>
+        {% else %}
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body p-4 text-center">
+                <p class="mb-3 text-muted">You must be logged in to join this session.</p>
+                <a href="{% url 'core:login' %}?next={{ request.path }}" class="btn btn-primary">
+                    <i class="fas fa-sign-in-alt me-2"></i>Log In to Join
+                </a>
+            </div>
+        </div>
+        {% endif %}
 
-    <!-- Members Section -->
-    <div class="members-section">
-        <h3>Members ({{ session.num_members }})</h3>
-        <div class="members-list">
-            {% for member in members %}
-                <div class="member">
-                    <span class="member-name">{{ member.username }}</span>
-                    {% if member == session.owner %}
-                        <span class="member-role host">Host</span>
-                    {% endif %}
+        <div class="row g-4">
+            <!-- Members -->
+            <div class="col-lg-4">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-header bg-transparent border-0 pb-0">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-users me-2 text-primary"></i>Who's Here
+                            <span class="badge bg-primary ms-1">{{ session.num_members }}</span>
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        {% for member in members %}
+                        <div class="member-item d-flex align-items-center mb-3">
+                            <div class="member-avatar me-3">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            <div>
+                                <span class="fw-semibold">{{ member.username }}</span>
+                                {% if member == session.owner %}
+                                    <span class="badge bg-warning text-dark ms-1">Host</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% empty %}
+                        <p class="text-muted mb-0">No members yet.</p>
+                        {% endfor %}
+                    </div>
                 </div>
-            {% empty %}
-                <p>No members yet.</p>
-            {% endfor %}
-        </div>
-    </div>
+            </div>
 
-    <!-- Attendance Section (Only visible to leaders/admins after session starts) -->
-    {% if can_mark_attendance %}
-    <div class="attendance-section mt-4">
-        <div class="card border-0 shadow-sm">
-            <div class="card-header bg-primary text-white">
-                <h3 class="mb-0">
-                    <i class="fas fa-clipboard-check me-2"></i>Attendance
-                </h3>
+            <!-- Messages -->
+            <div class="col-lg-8">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-transparent border-0 pb-0">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-comments me-2 text-primary"></i>Chat
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="messages-list mb-4" style="max-height: 400px; overflow-y: auto;">
+                            {% for msg in messages %}
+                            <div class="message-item mb-3">
+                                <div class="d-flex align-items-center mb-1">
+                                    <span class="fw-semibold me-2">{{ msg.user.username }}</span>
+                                    {% if msg.user == session.owner %}
+                                        <span class="badge bg-warning text-dark me-2" style="font-size: 0.7rem;">Host</span>
+                                    {% endif %}
+                                    <small class="text-muted">{{ msg.created_at|date:"M j, H:i" }}</small>
+                                </div>
+                                <div class="message-bubble">{{ msg.text }}</div>
+                            </div>
+                            {% empty %}
+                            <p class="text-muted text-center py-3">No messages yet — be the first to say something! 👋</p>
+                            {% endfor %}
+                        </div>
+
+                        {% if request.user.is_authenticated and is_member %}
+                        <form method="post" action="{% url 'core:detail' session.pk %}">
+                            {% csrf_token %}
+                            <div class="input-group">
+                                <textarea name="message_text" class="form-control"
+                                          placeholder="Type your message…" rows="2" required></textarea>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-paper-plane"></i>
+                                </button>
+                            </div>
+                        </form>
+                        {% elif request.user.is_authenticated and not is_member %}
+                        <p class="text-muted text-center mb-0">
+                            <i class="fas fa-lock me-1"></i>Join to chat with the group.
+                        </p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Attendance Section -->
+        {% if can_mark_attendance %}
+        <div class="card border-0 shadow-sm mt-4">
+            <div class="card-header bg-primary text-white border-0">
+                <h5 class="mb-0">
+                    <i class="fas fa-clipboard-check me-2"></i>Mark Attendance
+                </h5>
             </div>
             <div class="card-body">
                 <div class="table-responsive">
-                    <table class="table table-hover">
+                    <table class="table table-hover align-middle mb-0">
                         <thead>
                             <tr>
                                 <th>Member</th>
@@ -112,32 +277,32 @@
                                 <td>
                                     <strong>{{ member.username }}</strong>
                                     {% if member == session.owner %}
-                                        <span class="badge bg-info ms-2">Host</span>
+                                        <span class="badge bg-warning text-dark ms-1">Host</span>
                                     {% endif %}
                                 </td>
                                 <td class="text-center">
-                                    {% if member.id in attendance_dict %}
-                                        {% if attendance_dict|get_item:member.id == 'present' %}
-                                            <span class="badge bg-success">Present</span>
-                                        {% else %}
-                                            <span class="badge bg-danger">Absent</span>
-                                        {% endif %}
+                                    {% with status=attendance_dict|get_item:member.id %}
+                                    {% if status == 'present' %}
+                                        <span class="badge bg-success">Present</span>
+                                    {% elif status == 'absent' %}
+                                        <span class="badge bg-danger">Absent</span>
                                     {% else %}
                                         <span class="badge bg-secondary">Not Marked</span>
                                     {% endif %}
+                                    {% endwith %}
                                 </td>
                                 <td class="text-center">
-                                    <form method="post" action="{% url 'core:attendance' session.pk %}" style="display: inline;">
+                                    <form method="post" action="{% url 'core:attendance' session.pk %}" class="d-inline">
                                         {% csrf_token %}
                                         <input type="hidden" name="user_id" value="{{ member.id }}">
-                                        <div class="btn-group" role="group">
-                                            <button type="submit" name="status" value="present" 
-                                                    class="btn btn-sm btn-success {% if member.id in attendance_dict and attendance_dict|get_item:member.id == 'present' %}active{% endif %}">
-                                                <i class="fas fa-check"></i> Present
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <button type="submit" name="status" value="present"
+                                                    class="btn btn-success {% if attendance_dict|get_item:member.id == 'present' %}active{% endif %}">
+                                                <i class="fas fa-check"></i>
                                             </button>
-                                            <button type="submit" name="status" value="absent" 
-                                                    class="btn btn-sm btn-danger {% if member.id in attendance_dict and attendance_dict|get_item:member.id == 'absent' %}active{% endif %}">
-                                                <i class="fas fa-times"></i> Absent
+                                            <button type="submit" name="status" value="absent"
+                                                    class="btn btn-danger {% if attendance_dict|get_item:member.id == 'absent' %}active{% endif %}">
+                                                <i class="fas fa-times"></i>
                                             </button>
                                         </div>
                                     </form>
@@ -145,7 +310,7 @@
                             </tr>
                             {% empty %}
                             <tr>
-                                <td colspan="3" class="text-center text-muted">No members to mark attendance for.</td>
+                                <td colspan="3" class="text-center text-muted">No members yet.</td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -153,85 +318,118 @@
                 </div>
             </div>
         </div>
-    </div>
-    {% elif request.user.is_authenticated %}
-    <!-- Show attendance status for regular users -->
-    <div class="attendance-section mt-4">
-        <div class="card border-0 shadow-sm">
-            <div class="card-header bg-secondary text-white">
-                <h3 class="mb-0">
-                    <i class="fas fa-clipboard-check me-2"></i>Your Attendance
-                </h3>
+        {% elif request.user.is_authenticated and is_member %}
+        <!-- Show own attendance status -->
+        <div class="card border-0 shadow-sm mt-4">
+            <div class="card-header bg-transparent border-0 pb-0">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-clipboard-check me-2 text-primary"></i>Your Attendance
+                </h5>
             </div>
             <div class="card-body">
-                {% if request.user.id in attendance_dict %}
-                    {% if attendance_dict|get_item:request.user.id == 'present' %}
-                        <div class="alert alert-success mb-0">
-                            <i class="fas fa-check-circle me-2"></i>
-                            <strong>You are marked as Present</strong>
-                        </div>
-                    {% else %}
-                        <div class="alert alert-danger mb-0">
-                            <i class="fas fa-times-circle me-2"></i>
-                            <strong>You are marked as Absent</strong>
-                        </div>
-                    {% endif %}
+                {% with status=attendance_dict|get_item:request.user.id %}
+                {% if status == 'present' %}
+                    <div class="alert alert-success mb-0">
+                        <i class="fas fa-check-circle me-2"></i>You are marked as <strong>Present</strong>.
+                    </div>
+                {% elif status == 'absent' %}
+                    <div class="alert alert-danger mb-0">
+                        <i class="fas fa-times-circle me-2"></i>You are marked as <strong>Absent</strong>.
+                    </div>
                 {% else %}
                     <div class="alert alert-info mb-0">
-                        <i class="fas fa-info-circle me-2"></i>
-                        Your attendance has not been marked yet.
+                        <i class="fas fa-info-circle me-2"></i>Your attendance has not been marked yet.
                     </div>
                 {% endif %}
+                {% endwith %}
             </div>
         </div>
-    </div>
-    {% endif %}
-
-    <!-- Waitlist Section (Only visible to session owner) -->
-    {% if request.user == session.owner and waitlist %}
-    <div class="waitlist-section">
-        <h3>Waitlist ({{ waitlist.count }})</h3>
-        <div class="waitlist-list">
-            {% for entry in waitlist %}
-                <div class="waitlist-entry">
-                    <span class="waitlist-name">{{ entry.user.username }}</span>
-                    <span class="waitlist-time">{{ entry.added_at|date:"M d H:i" }}</span>
-                </div>
-            {% empty %}
-                <p>No one on the waitlist.</p>
-            {% endfor %}
-        </div>
-    </div>
-    {% endif %}
-
-    <!-- Messages Section -->
-    <div class="messages-section">
-        <h3>Messages</h3>
-        <div class="messages-list">
-            {% for message in messages %}
-                <div class="message">
-                    <div class="message-header">
-                        <span class="message-author">{{ message.user.username }}</span>
-                        <span class="message-time">{{ message.created_at|date:"M d H:i" }}</span>
-                    </div>
-                    <div class="message-content">
-                        {{ message.text }}
-                    </div>
-                </div>
-            {% empty %}
-                <p>No messages yet.</p>
-            {% endfor %}
-        </div>
-        
-        {% if request.user.is_authenticated and is_member %}
-            <form method="post" action="{% url 'core:detail' session.pk %}" class="message-form">
-                {% csrf_token %}
-                <div class="form-group">
-                    <textarea name="message_text" placeholder="Type your message..." required></textarea>
-                    <button type="submit" class="btn btn-primary">Send Message</button>
-                </div>
-            </form>
         {% endif %}
+
+        <!-- Waitlist (owner only) -->
+        {% if request.user == session.owner and waitlist %}
+        <div class="card border-0 shadow-sm mt-4">
+            <div class="card-header bg-transparent border-0 pb-0">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-hourglass-half me-2 text-warning"></i>Waitlist
+                    <span class="badge bg-warning text-dark ms-1">{{ waitlist|length }}</span>
+                </h5>
+            </div>
+            <div class="card-body">
+                {% for entry in waitlist %}
+                <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                    <span class="fw-semibold">{{ entry.user.username }}</span>
+                    <small class="text-muted">Added {{ entry.added_at|date:"M j, H:i" }}</small>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
     </div>
 </div>
+
+<style>
+    .detail-meta-item {
+        display: flex;
+        align-items: center;
+        padding: 0.6rem 0.8rem;
+        background: var(--surface-muted);
+        border-radius: 10px;
+        border: 1px solid var(--nav-border);
+        font-size: 0.9rem;
+        color: var(--text-color);
+    }
+
+    .member-avatar {
+        width: 36px;
+        height: 36px;
+        background: var(--primary-soft);
+        border: 1px solid var(--primary-color);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--primary-color);
+        flex-shrink: 0;
+    }
+
+    .member-item {
+        padding: 0.5rem;
+        border-radius: 10px;
+        transition: background 0.2s;
+    }
+
+    .member-item:hover {
+        background: var(--surface-muted);
+    }
+
+    .message-item {
+        padding: 0.75rem;
+        border-radius: 12px;
+        background: var(--surface-muted);
+        border: 1px solid var(--nav-border);
+    }
+
+    .message-bubble {
+        color: var(--text-color);
+        font-size: 0.95rem;
+        line-height: 1.5;
+        white-space: pre-wrap;
+    }
+
+    .table {
+        color: var(--text-color);
+    }
+
+    .table th {
+        color: var(--text-muted);
+        font-weight: 600;
+        border-color: var(--nav-border);
+    }
+
+    .table td {
+        border-color: var(--nav-border);
+    }
+</style>
 {% endblock %}

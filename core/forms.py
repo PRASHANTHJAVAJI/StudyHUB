@@ -39,7 +39,95 @@ class CustomUserCreationForm(UserCreationForm):
         return user
 
 
+class EditAccountForm(forms.ModelForm):
+    """Edit username and email on the User model."""
+    email = forms.EmailField(
+        required=True,
+        widget=forms.EmailInput(attrs={'class': 'form-control'}),
+        label='Email Address',
+    )
+
+    class Meta:
+        model = User
+        fields = ('username', 'email')
+        widgets = {
+            'username': forms.TextInput(attrs={'class': 'form-control'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['username'].help_text = ''
+
+    def clean_email(self):
+        email = self.cleaned_data['email']
+        qs = User.objects.filter(email__iexact=email)
+        if self.instance:
+            qs = qs.exclude(pk=self.instance.pk)
+        if qs.exists():
+            raise forms.ValidationError('That email is already in use by another account.')
+        return email
+
+    def clean_username(self):
+        username = self.cleaned_data['username']
+        qs = User.objects.filter(username__iexact=username)
+        if self.instance:
+            qs = qs.exclude(pk=self.instance.pk)
+        if qs.exists():
+            raise forms.ValidationError('That username is already taken.')
+        return username
+
+
+class EditProfileForm(forms.ModelForm):
+    """Edit academic fields on UserProfile. Fields shown depend on user role."""
+    class Meta:
+        model = UserProfile
+        fields = ('education_level', 'department', 'major', 'minor')
+        widgets = {
+            'education_level': forms.Select(attrs={'class': 'form-select'}),
+            'department': forms.Select(attrs={'class': 'form-select'}),
+            'major': forms.Select(attrs={'class': 'form-select'}),
+            'minor': forms.Select(attrs={'class': 'form-select'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user', None)
+        super().__init__(*args, **kwargs)
+
+        is_faculty = self.user and not (self.user.is_staff or self.user.is_superuser) and getattr(getattr(self.user, 'profile', None), 'is_faculty', False)
+
+        if is_faculty:
+            # Faculty: department only
+            self.fields.pop('education_level', None)
+            self.fields.pop('major', None)
+            self.fields.pop('minor', None)
+            self.fields['department'].queryset = Department.objects.order_by('name')
+            self.fields['department'].required = True
+            self.fields['department'].empty_label = 'Select a department'
+        else:
+            self.fields['department'].queryset = Department.objects.order_by('name')
+            self.fields['department'].required = True
+            self.fields['major'].required = True
+            self.fields['minor'].required = False
+            self.fields['department'].empty_label = 'Select a department'
+            self.fields['major'].empty_label = 'Select a major'
+            self.fields['minor'].empty_label = 'None'
+
+            department_id = None
+            if self.is_bound:
+                department_id = self.data.get('department') or None
+            elif self.instance and self.instance.department_id:
+                department_id = self.instance.department_id
+
+            if department_id:
+                self.fields['major'].queryset = Major.objects.filter(department_id=department_id).order_by('name')
+                self.fields['minor'].queryset = Minor.objects.filter(department_id=department_id).order_by('name')
+            else:
+                self.fields['major'].queryset = Major.objects.none()
+                self.fields['minor'].queryset = Minor.objects.none()
+
+
 class ProfileSetupForm(forms.ModelForm):
+    """Onboarding form. Fields shown depend on user role passed via user= kwarg."""
     class Meta:
         model = UserProfile
         fields = ('education_level', 'department', 'major', 'minor')
@@ -51,27 +139,39 @@ class ProfileSetupForm(forms.ModelForm):
         }
 
     def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
-        self.fields['department'].queryset = Department.objects.order_by('name')
-        department_id = None
-        if self.is_bound:
-            department_id = self.data.get('department') or None
-        elif self.instance and self.instance.department_id:
-            department_id = self.instance.department_id
 
-        if department_id:
-            self.fields['major'].queryset = Major.objects.filter(department_id=department_id).order_by('name')
-            self.fields['minor'].queryset = Minor.objects.filter(department_id=department_id).order_by('name')
+        is_faculty = self.user and not (self.user.is_staff or self.user.is_superuser) and getattr(getattr(self.user, 'profile', None), 'is_faculty', False)
+
+        if is_faculty:
+            self.fields.pop('education_level', None)
+            self.fields.pop('major', None)
+            self.fields.pop('minor', None)
+            self.fields['department'].queryset = Department.objects.order_by('name')
+            self.fields['department'].required = True
+            self.fields['department'].empty_label = 'Select your department'
         else:
-            self.fields['major'].queryset = Major.objects.none()
-            self.fields['minor'].queryset = Minor.objects.none()
+            self.fields['department'].queryset = Department.objects.order_by('name')
+            department_id = None
+            if self.is_bound:
+                department_id = self.data.get('department') or None
+            elif self.instance and self.instance.department_id:
+                department_id = self.instance.department_id
 
-        self.fields['department'].required = True
-        self.fields['major'].required = True
-        self.fields['minor'].required = False
-        self.fields['department'].empty_label = 'Select a department'
-        self.fields['major'].empty_label = 'Select a major'
-        self.fields['minor'].empty_label = 'Select a minor (optional)'
+            if department_id:
+                self.fields['major'].queryset = Major.objects.filter(department_id=department_id).order_by('name')
+                self.fields['minor'].queryset = Minor.objects.filter(department_id=department_id).order_by('name')
+            else:
+                self.fields['major'].queryset = Major.objects.none()
+                self.fields['minor'].queryset = Minor.objects.none()
+
+            self.fields['department'].required = True
+            self.fields['major'].required = True
+            self.fields['minor'].required = False
+            self.fields['department'].empty_label = 'Select a department'
+            self.fields['major'].empty_label = 'Select a major'
+            self.fields['minor'].empty_label = 'Select a minor (optional)'
 
 
 class StudySessionForm(forms.ModelForm):
@@ -90,131 +190,189 @@ class StudySessionForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
+        self.user = user  # stored for clean() validation
 
         is_privileged = False
+        is_admin_or_faculty = False
         profile = None
+        profile_dept_name = None
         if user and user.is_authenticated:
             profile, _ = UserProfile.objects.get_or_create(user=user)
-            is_privileged = bool(
-                user.is_staff or
-                user.is_superuser or
-                (profile and (getattr(profile, 'is_student_leader', False) or getattr(profile, 'is_faculty', False)))
+            is_admin_or_faculty = bool(
+                user.is_staff or user.is_superuser or
+                (profile and getattr(profile, 'is_faculty', False))
             )
+            is_privileged = is_admin_or_faculty or bool(
+                profile and getattr(profile, 'is_student_leader', False)
+            )
+            if profile and profile.department:
+                profile_dept_name = profile.department.name
 
-        if not is_privileged:
-            self.fields.pop('visible_departments', None)
-        else:
-            if 'visible_departments' in self.fields:
-                if Department.objects.count() == 0:
-                    subject_departments = list(
-                        SubjectTag.objects.exclude(department='')
-                        .order_by('department')
-                        .values_list('department', flat=True)
-                        .distinct()
-                    )
-                    if not subject_departments:
-                        subject_departments = ["Computer Science", "Electrical Science", "Architecture"]
-                    for dept_name in subject_departments:
-                        Department.objects.get_or_create(name=dept_name)
+        # Normal users with a profile department get the department field locked/hidden
+        is_dept_locked = not is_privileged and profile_dept_name is not None
 
-                self.fields['visible_departments'].queryset = Department.objects.order_by('name')
-                self.fields['visible_departments'].required = False
-                self.fields['visible_departments'].widget = forms.CheckboxSelectMultiple()
-        
+        # --- Restrict category choices by role ---
+        if 'category' in self.fields:
+            from .models import StudySession as _SS
+            if is_admin_or_faculty:
+                pass  # all three options available
+            elif is_privileged:  # student leader
+                self.fields['category'].choices = [
+                    (_SS.CATEGORY_GENERAL, 'General'),
+                    (_SS.CATEGORY_STUDY, 'Study Session'),
+                ]
+            else:
+                # Regular users: General only, hide the field
+                self.fields['category'].choices = [(_SS.CATEGORY_GENERAL, 'General')]
+                self.fields['category'].widget = forms.HiddenInput()
+
+        # --- Department visibility ---
+        # Always remove the raw M2M field.
+        # Visibility dropdown shown for privileged users (student leaders, faculty, admins).
+        # Regular users get no dropdown — their department is assigned automatically in the view.
+        self.fields.pop('visible_departments', None)
+        if is_privileged:
+            initial_vis = 'department'
+            if self.instance and self.instance.pk:
+                all_count = Department.objects.count()
+                vd_count = self.instance.visible_departments.count()
+                if all_count > 0 and vd_count >= all_count:
+                    initial_vis = 'all'
+            vis_field = forms.ChoiceField(
+                choices=[
+                    ('department', 'My Department Only'),
+                    ('all', 'All Departments'),
+                ],
+                label='Visibility',
+                widget=forms.Select(attrs={'class': 'form-control'}),
+                required=True,
+            )
+            vis_field.initial = initial_vis
+            self.fields['visibility'] = vis_field
+
         selected_subject = None
         if self.is_bound:
             selected_subject = self.data.get('subjects')
-        
+
         # Handle building_name and room_number for existing sessions
         if self.instance and self.instance.pk:
             if not self.instance.is_virtual and self.instance.location_text:
-                # Parse location_text to extract building and room
                 location_parts = self.instance.location_text.split(' - Room ')
                 if len(location_parts) == 2:
                     self.fields['building_name'].initial = location_parts[0]
                     self.fields['room_number'].initial = location_parts[1]
-        
+
         if user and user.is_authenticated:
             try:
-                # Build department choices from Department model (fallback to SubjectTag)
-                department_names = list(Department.objects.order_by('name').values_list('name', flat=True))
-                if not department_names:
-                    department_names = sorted(
-                        [d for d in SubjectTag.objects.values_list('department', flat=True).distinct() if d]
-                    )
-                if not department_names:
-                    default_departments = ["Computer Science", "Electrical Science", "Architecture"]
-                    for dept_name in default_departments:
-                        Department.objects.get_or_create(name=dept_name)
-                    department_names = default_departments
-                department_choices = [('', '-- Select Department --')] + [(dept, dept) for dept in department_names]
-                if SubjectTag.objects.filter(department='').exists():
-                    department_choices.append(('Other', 'Other'))
-
-                selected_department = None
-                if self.is_bound:
-                    selected_department = self.data.get('department') or None
-                elif self.instance and self.instance.pk:
-                    existing_subject = self.instance.subjects.first()
-                    if existing_subject and existing_subject.department:
-                        selected_department = existing_subject.department
-                elif profile and profile.department:
-                    selected_department = profile.department.name
-
-                department_help = 'First select a department, then choose a subject'
-                if len(department_choices) == 1:
-                    department_help = 'No departments available. Add them in the admin panel.'
-
-                self.fields['department'] = forms.ChoiceField(
-                    choices=department_choices,
-                    widget=forms.Select(attrs={'class': 'form-control', 'required': True}),
-                    label='Department',
-                    help_text=department_help
-                )
-                if selected_department:
-                    self.fields['department'].initial = selected_department
-
-                # Subjects choices by education level and department
                 education_level = profile.education_level if profile else SubjectTag.BACHELORS
-                all_subjects_qs = SubjectTag.objects.filter(education_level=education_level).order_by('department', 'name')
-                if selected_department:
-                    if selected_department == 'Other':
-                        all_subjects_qs = all_subjects_qs.filter(department='')
-                    else:
-                        all_subjects_qs = all_subjects_qs.filter(department=selected_department)
-                if selected_subject:
-                    try:
-                        selected_subject_obj = SubjectTag.objects.get(id=selected_subject)
-                        if selected_subject_obj not in all_subjects_qs:
-                            all_subjects_qs = list(all_subjects_qs) + [selected_subject_obj]
-                    except SubjectTag.DoesNotExist:
-                        pass
 
-                subject_choices = [('', '-- Select Department First --')]
-                subject_choices += [(str(subj.id), subj.name) for subj in all_subjects_qs]
-                if len(subject_choices) == 1:
-                    subject_choices = [('', '-- No Subjects Available --')]
+                if is_dept_locked:
+                    # Normal user: hide the department field, lock to profile department
+                    dept_name = profile_dept_name
+                    self.fields['department'] = forms.CharField(
+                        widget=forms.HiddenInput(),
+                        initial=dept_name,
+                        required=False,
+                    )
+                    # Filter subjects to profile department only
+                    all_subjects_qs = SubjectTag.objects.filter(
+                        education_level=education_level,
+                        department=dept_name,
+                    ).order_by('name')
+                    if selected_subject:
+                        try:
+                            sel_obj = SubjectTag.objects.get(id=selected_subject)
+                            if sel_obj not in list(all_subjects_qs):
+                                all_subjects_qs = list(all_subjects_qs) + [sel_obj]
+                        except SubjectTag.DoesNotExist:
+                            pass
+                    subject_choices = [('', '-- Select a Subject --')]
+                    subject_choices += [(str(s.id), s.name) for s in all_subjects_qs]
+                    self.fields['subjects'] = forms.ChoiceField(
+                        choices=subject_choices,
+                        widget=forms.Select(attrs={'class': 'form-control', 'required': True}),
+                        label='Subject',
+                        help_text=f'Subjects available in {dept_name}',
+                    )
+                    self.all_subjects = {}  # no dept switcher needed for normal users
+                else:
+                    # Privileged user: full department dropdown
+                    department_names = list(Department.objects.order_by('name').values_list('name', flat=True))
+                    if not department_names:
+                        department_names = sorted(
+                            [d for d in SubjectTag.objects.values_list('department', flat=True).distinct() if d]
+                        )
+                    if not department_names:
+                        default_departments = ["Computer Science", "Electrical Science", "Architecture"]
+                        for dept_name in default_departments:
+                            Department.objects.get_or_create(name=dept_name)
+                        department_names = default_departments
+                    department_choices = [('', '-- Select Department --')] + [(dept, dept) for dept in department_names]
+                    if SubjectTag.objects.filter(department='').exists():
+                        department_choices.append(('Other', 'Other'))
 
-                subject_help = 'Select a subject from the chosen department'
-                if subject_choices == [('', '-- No Subjects Available --')]:
-                    subject_help = 'No subjects available. Add them in the admin panel.'
+                    selected_department = None
+                    if self.is_bound:
+                        selected_department = self.data.get('department') or None
+                    elif self.instance and self.instance.pk:
+                        existing_subject = self.instance.subjects.first()
+                        if existing_subject and existing_subject.department:
+                            selected_department = existing_subject.department
+                    elif profile and profile.department:
+                        selected_department = profile.department.name
 
-                self.fields['subjects'] = forms.ChoiceField(
-                    choices=subject_choices,
-                    widget=forms.Select(attrs={'class': 'form-control', 'required': True}),
-                    label='Subject',
-                    help_text=subject_help
-                )
+                    department_help = 'First select a department, then choose a subject'
+                    if len(department_choices) == 1:
+                        department_help = 'No departments available. Add them in the admin panel.'
 
-                # subjects_data for JS: group subjects by department
-                all_subjects_for_js = SubjectTag.objects.filter(education_level=education_level).order_by('department', 'name')
-                self.all_subjects = {}
-                for subject in all_subjects_for_js:
-                    dept = subject.department or 'Other'
-                    if dept not in self.all_subjects:
-                        self.all_subjects[dept] = []
-                    subject_data = (str(subject.id), str(subject.name))
-                    self.all_subjects[dept].append(subject_data)
+                    self.fields['department'] = forms.ChoiceField(
+                        choices=department_choices,
+                        widget=forms.Select(attrs={'class': 'form-control', 'required': True}),
+                        label='Department',
+                        help_text=department_help,
+                    )
+                    if selected_department:
+                        self.fields['department'].initial = selected_department
+
+                    all_subjects_qs = SubjectTag.objects.filter(education_level=education_level).order_by('department', 'name')
+                    if selected_department:
+                        if selected_department == 'Other':
+                            all_subjects_qs = all_subjects_qs.filter(department='')
+                        else:
+                            all_subjects_qs = all_subjects_qs.filter(department=selected_department)
+                    if selected_subject:
+                        try:
+                            selected_subject_obj = SubjectTag.objects.get(id=selected_subject)
+                            if selected_subject_obj not in all_subjects_qs:
+                                all_subjects_qs = list(all_subjects_qs) + [selected_subject_obj]
+                        except SubjectTag.DoesNotExist:
+                            pass
+
+                    subject_choices = [('', '-- Select Department First --')]
+                    subject_choices += [(str(subj.id), subj.name) for subj in all_subjects_qs]
+                    if len(subject_choices) == 1:
+                        subject_choices = [('', '-- No Subjects Available --')]
+
+                    subject_help = 'Select a subject from the chosen department'
+                    if subject_choices == [('', '-- No Subjects Available --')]:
+                        subject_help = 'No subjects available. Add them in the admin panel.'
+
+                    self.fields['subjects'] = forms.ChoiceField(
+                        choices=subject_choices,
+                        widget=forms.Select(attrs={'class': 'form-control', 'required': True}),
+                        label='Subject',
+                        help_text=subject_help,
+                    )
+
+                    # subjects_data for JS: group subjects by department
+                    all_subjects_for_js = SubjectTag.objects.filter(education_level=education_level).order_by('department', 'name')
+                    self.all_subjects = {}
+                    for subject in all_subjects_for_js:
+                        dept = subject.department or 'Other'
+                        if dept not in self.all_subjects:
+                            self.all_subjects[dept] = []
+                        self.all_subjects[dept].append((str(subject.id), str(subject.name)))
+
             except Exception:
                 self.fields['department'] = forms.ChoiceField(
                     choices=[('', 'Error loading departments')],
@@ -245,14 +403,15 @@ class StudySessionForm(forms.ModelForm):
     class Meta:
         model = StudySession
         fields = [
-            'title', 'description', 'subjects', 'visible_departments',
+            'title', 'description', 'category', 'subjects', 'visible_departments',
             'start_time', 'end_time',
             'is_virtual', 'virtual_link', 'location_text',
-            'capacity', 'is_recurring', 'recurrence_type', 
+            'capacity', 'is_recurring', 'recurrence_type',
             'recurrence_interval', 'recurrence_end_date'
         ]
         widgets = {
             'title': forms.TextInput(attrs={'class': 'form-control', 'required': True}),
+            'category': forms.Select(attrs={'class': 'form-control'}),
             'description': forms.Textarea(attrs={'class': 'form-control', 'required': True, 'rows': 4}),
             'start_time': forms.DateTimeInput(attrs={
                 'type': 'datetime-local', 
@@ -277,6 +436,18 @@ class StudySessionForm(forms.ModelForm):
 
     def clean(self):
         cleaned = super().clean()
+
+        # Only admins and faculty can create conferences
+        category = cleaned.get('category')
+        if category == 'conference':
+            u = getattr(self, 'user', None)
+            allowed = u and (
+                u.is_staff or u.is_superuser or
+                getattr(getattr(u, 'profile', None), 'is_faculty', False)
+            )
+            if not allowed:
+                self.add_error('category', 'Only admins and faculty can create conferences.')
+
         start = cleaned.get('start_time')
         end = cleaned.get('end_time')
         
